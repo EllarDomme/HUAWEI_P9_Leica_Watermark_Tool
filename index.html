@@ -28,12 +28,12 @@
   /* 顶栏 */
   .top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
     border-bottom:1px solid var(--line);background:rgba(9,9,11,.92);position:-webkit-sticky;position:sticky;top:0;z-index:20}
-  .logo{display:flex;align-items:center;font-weight:650;letter-spacing:.2px}
+  .logo{display:flex;align-items:center;font-weight:650;letter-spacing:.2px;white-space:nowrap;flex:none}
   .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 12px rgba(226,0,26,.35);margin-right:9px}
   .logo-name{line-height:1}
-  .logo em{font-style:normal;font-weight:400;font-size:10.5px;color:#8a8a92;letter-spacing:.08em;
-    margin-left:10px;padding:3px 9px;border:1px solid var(--line);border-radius:999px;
-    background:rgba(255,255,255,.03);line-height:1}
+  .logo em{font-style:normal;font-weight:400;font-size:10px;color:#8f8f98;letter-spacing:.1em;
+    margin-left:12px;padding:3px 9px;border:1px solid rgba(255,255,255,.1);border-radius:999px;
+    background:transparent;line-height:1}
   .top-actions{display:flex}
   .top-actions .btn + .btn{margin-left:8px}
 
@@ -170,7 +170,17 @@
   body.clean #preview{max-height:100vh;max-width:100vw;border-radius:0;box-shadow:none}
   body.clean .stage-foot{display:none}
 
+  @media (max-width:600px){
+    #pickBtn{display:none}
+    .top-actions .btn{padding:0 12px;font-size:12.5px}
+    .top{padding:0 10px}
+  }
+
   @media (max-width:900px){
+    .top{height:50px;padding:0 12px}
+    .logo{font-size:13px}
+    .logo em{display:none}
+    .top-actions .btn{height:32px;padding:0 12px}
     .app{flex-direction:column;height:auto}
     .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box}
     #preview{max-height:40vh}
@@ -1481,6 +1491,9 @@
     if (!state.bitmap && e.target.closest('#empty')) el.file.click();
   });
   $('#pickBtn').addEventListener('click', function () { el.file.click(); });
+  el.preview.addEventListener('click', function () {
+    if (state.bitmap && window.innerWidth <= 600) el.file.click();
+  });
 
   el.file.addEventListener('change', function () {
     var f = el.file.files && el.file.files[0];
