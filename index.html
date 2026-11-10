@@ -1884,33 +1884,66 @@
   function showSavePanel(blob, name, hint) {
     var url;
     try { url = URL.createObjectURL(blob); } catch (e) { return toast('生成图片失败'); }
+    var isAndroid = /Android/i.test(navigator.userAgent);
     var wrap = document.createElement('div');
     wrap.className = 'savepanel';
     var box = document.createElement('div');
     box.className = 'box';
     var tip = document.createElement('p');
-    tip.textContent = hint || '已生成图片。若相册里没有，长按下图保存';
+    tip.textContent = hint || '已生成图片。长按图片保存；若相册里没有，去「文件管理 → Download」看看';
+    if (isAndroid && blob.size > 12 * 1024 * 1024) {
+      tip.textContent += '（图太大，建议改用 JPEG 92%）';
+    }
     var img = document.createElement('img');
     img.src = url;
+
+    // 安卓上换成 data: 地址，长按“保存图片”的兼容性更好（blob: 有些浏览器不给存）
+    if (isAndroid && window.FileReader && blob.size <= 12 * 1024 * 1024) {
+      try {
+        var fr = new FileReader();
+        fr.onload = function () { img.src = String(fr.result); };
+        fr.readAsDataURL(blob);
+      } catch (e) {}
+    }
+
     var acts = document.createElement('div');
     acts.className = 'acts';
-    var isAndroid = /Android/i.test(navigator.userAgent);
-    var a = null;
-    if (!isAndroid) {
-      a = document.createElement('a');
-      a.className = 'btn primary';
-      a.href = url;
-      a.download = name;
-      a.textContent = '下载';
+    var primary = null;
+
+    // 优先用系统分享面板：能直接“保存到相册/文件”
+    try {
+      if (isAndroid && navigator.canShare && window.File) {
+        var file = new File([blob], name, { type: blob.type || 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          primary = document.createElement('button');
+          primary.className = 'btn primary';
+          primary.textContent = '保存到相册';
+          primary.onclick = function () {
+            try {
+              navigator.share({ files: [file] }).catch(function () { toast('分享被取消，可长按图片保存', 4000); });
+            } catch (e) { toast('这个浏览器不支持分享，请长按图片保存', 4000); }
+          };
+        }
+      }
+    } catch (e) {}
+
+    if (!primary && !isAndroid) {
+      primary = document.createElement('a');
+      primary.className = 'btn primary';
+      primary.href = url;
+      primary.download = name;
+      primary.textContent = '下载';
     }
+
     var close = document.createElement('button');
-    close.className = 'btn' + (a ? ' ghost' : ' primary');
-    close.textContent = a ? '关闭' : '知道了';
+    close.className = 'btn' + (primary ? ' ghost' : ' primary');
+    close.textContent = primary ? '关闭' : '知道了';
     close.onclick = function () {
       try { URL.revokeObjectURL(url); } catch (e) {}
       wrap.parentNode && wrap.parentNode.removeChild(wrap);
     };
-    if (a) acts.appendChild(a);
+
+    if (primary) acts.appendChild(primary);
     acts.appendChild(close);
     box.appendChild(tip); box.appendChild(img); box.appendChild(acts);
     wrap.appendChild(box);
@@ -1995,7 +2028,7 @@
           if (isMobile) {
             // 手机端不走浏览器下载（老 WebView 常被拦截或报错），直接给长按保存面板
             try {
-              showSavePanel(blob, name, '已生成图片。长按下面的图片即可保存到相册');
+              showSavePanel(blob, name, '长按图片保存；相册里找不到的话，去「文件管理 → Download」看一下');
             } catch (e) {
               toast('生成预览失败：' + (e.message || e));
             }
