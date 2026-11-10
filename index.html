@@ -1890,41 +1890,30 @@
     var box = document.createElement('div');
     box.className = 'box';
     var tip = document.createElement('p');
-    tip.textContent = hint || '已生成图片。长按图片保存；若相册里没有，去「文件管理 → Download」看看';
+    tip.textContent = hint || '点「打开图片」，在新页面里长按或点浏览器菜单保存';
     if (isAndroid && blob.size > 12 * 1024 * 1024) {
-      tip.textContent += '（图太大，建议改用 JPEG 92%）';
+      tip.textContent += '（图较大，建议改用 JPEG 92%）';
     }
     var img = document.createElement('img');
     img.src = url;
-
 
     var acts = document.createElement('div');
     acts.className = 'acts';
     var primary = null;
 
-    // 优先用系统分享面板：能直接“保存到相册/文件”
-    try {
-      if (isAndroid && navigator.canShare && window.File) {
-        var file = new File([blob], name, { type: blob.type || 'image/jpeg' });
-        if (navigator.canShare({ files: [file] })) {
-          primary = document.createElement('button');
-          primary.className = 'btn primary';
-          primary.textContent = '保存到相册';
-          primary.onclick = function () {
-            var fallback = function () {
-              try { window.open(url, '_blank'); }
-              catch (e) { toast('长按图片保存，或去文件管理里找', 4000); }
-            };
-            try {
-              var pr = navigator.share({ files: [file] });
-              if (pr && pr.catch) pr.catch(fallback);
-            } catch (e) { fallback(); }
-          };
-        }
-      }
-    } catch (e) {}
+    function openImage() {
+      try {
+        var w = window.open(url, '_blank');
+        if (!w) location.href = url;
+      } catch (e) { toast('长按图片保存试试', 4000); }
+    }
 
-    if (!primary && !isAndroid) {
+    if (isAndroid) {
+      primary = document.createElement('button');
+      primary.className = 'btn primary';
+      primary.textContent = '打开图片';
+      primary.onclick = openImage;
+    } else {
       primary = document.createElement('a');
       primary.className = 'btn primary';
       primary.href = url;
@@ -1932,29 +1921,15 @@
       primary.textContent = '下载';
     }
 
-    if (!primary) {
-      // 没有分享能力：在新窗口打开图片，浏览器看图页通常自带“保存图片”
-      primary = document.createElement('button');
-      primary.className = 'btn primary';
-      primary.textContent = '打开图片';
-      primary.onclick = function () {
-        var w = null;
-        try { w = window.open(url, '_blank'); } catch (e) {}
-        if (!w) {
-          try { location.href = url; } catch (e) { toast('请长按图片保存', 4000); }
-        }
-      };
-    }
-
     var close = document.createElement('button');
-    close.className = 'btn' + (primary ? ' ghost' : ' primary');
-    close.textContent = primary ? '关闭' : '知道了';
+    close.className = 'btn ghost';
+    close.textContent = '关闭';
     close.onclick = function () {
       try { URL.revokeObjectURL(url); } catch (e) {}
       wrap.parentNode && wrap.parentNode.removeChild(wrap);
     };
 
-    if (primary) acts.appendChild(primary);
+    acts.appendChild(primary);
     acts.appendChild(close);
     box.appendChild(tip); box.appendChild(img); box.appendChild(acts);
     wrap.appendChild(box);
@@ -2046,7 +2021,7 @@
             downloadBlob(blob, name);
           } catch (e) {}
           if (isMobile) {
-            showSavePanel(blob, name, '已尝试保存。找不到的话，长按下面的图片保存，或去「文件管理 → Download」看看');
+            showSavePanel(blob, name, '点「打开图片」，在新页面里长按或点浏览器菜单保存');
           } else {
             toast('已保存：' + name);
           }
