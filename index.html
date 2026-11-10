@@ -210,7 +210,7 @@
     .top-actions .btn{height:32px;padding:0 12px}
     .app{flex-direction:column;height:auto}
     .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box}
-    #preview{max-height:40vh}
+    #preview{max-height:40vh;box-shadow:none}
     .panel{border-left:none;border-top:1px solid var(--line);order:2;padding:16px 14px 40px;flex:1 1 auto;width:auto}
     .stage-foot{position:static;margin-top:14px;justify-content:center}
   }
@@ -1179,7 +1179,8 @@
     canvas.width = cw;
     canvas.height = ch;
     var ctx = canvas.getContext('2d');
-    ctx.imageSmoothingQuality = 'high';
+    // 大图缩小时 high 很吃 GPU，老机型上明显掉帧
+    ctx.imageSmoothingQuality = cw >= 1400 ? 'high' : 'medium';
 
     if (tpl === 'bar' || tpl === 'dark') {
       ctx.fillStyle = tpl === 'bar' ? '#ffffff' : '#0b0b0c';
@@ -1206,15 +1207,44 @@
   }
 
   var rafId = 0;
+  var dragging = false;
+
+  // 预览按“实际需要”的像素渲染：手机 900 / 桌面 1600，拖滑杆时再降到 720
+  function previewWidth() {
+    var cap = window.innerWidth <= 900 ? 800 : 1600;
+    if (dragging) cap = Math.min(cap, 640);
+    return Math.min(state.bitmap ? state.bitmap.width : cap, cap);
+  }
+
   function scheduleRender() {
     if (!state.bitmap) return;
     if (rafId) return;
     rafId = requestAnimationFrame(function () {
       rafId = 0;
-      try { renderInto(el.preview, Math.min(state.bitmap.width, 1600)); }
+      try { renderInto(el.preview, previewWidth()); }
       catch (e) { console.error(e); toast('渲染出错：' + e.message); }
     });
   }
+
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target && e.target.type === 'range') dragging = true;
+  }, true);
+  document.addEventListener('pointerup', function () {
+    if (dragging) { dragging = false; scheduleRender(); }
+  }, true);
+  document.addEventListener('pointercancel', function () {
+    if (dragging) { dragging = false; scheduleRender(); }
+  }, true);
+
+  var resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(scheduleRender, 180);
+  });
+  window.addEventListener('orientationchange', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(scheduleRender, 350);
+  });
 
   /* ================= 7. 预设 ================= */
   function readStore(key) {
