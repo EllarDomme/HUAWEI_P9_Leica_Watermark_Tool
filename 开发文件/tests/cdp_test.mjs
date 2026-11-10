@@ -48,7 +48,7 @@ await new Promise(r => setTimeout(r, 2500));
 const img = fs.readFileSync('E:/DeskTop/P9徕卡水印工具/开发文件/demo.jpg').toString('base64');
 await send('Runtime.evaluate', { expression: `window.__TEST_IMG__ = "data:image/jpeg;base64,${img}"` });
 
-const body = fs.readFileSync('E:/DeskTop/P9徕卡水印工具/_test_body.js', 'utf8');
+const body = fs.readFileSync('E:/DeskTop/P9徕卡水印工具/开发文件/tests/test_body.js', 'utf8');
 const out = await send('Runtime.evaluate', {
   expression: body,
   awaitPromise: true,

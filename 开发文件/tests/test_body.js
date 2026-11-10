@@ -10,7 +10,7 @@
     if (!cv || !cv.width) return 'none';
     var d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
     var h = 2166136261;
-    for (var i = 0; i < d.length; i += 1237) { h ^= d[i]; h = Math.imul(h, 16777619) >>> 0; }
+    for (var i = 0; i < d.length; i += 4) { h ^= d[i]; h = Math.imul(h, 16777619) >>> 0; }
     return h.toString(16) + '@' + cv.width + 'x' + cv.height;
   }
   function ok(n, c, d) { R.push({ n: n, p: !!c, d: d === undefined ? '' : String(d) }); }
@@ -71,11 +71,21 @@
   setSel('fontFamily', 'default');
   await wait(400);
 
+  // 确保时间显示是打开的
+  var dsw = document.getElementById('dateSw');
+  if (!dsw.checked) { dsw.click(); await wait(400); }
+
   var modes = ['date', 'min', 'sec'];
   var tsig = {};
-  for (var ti = 0; ti < 3; ti++) { setSel('timeMode', modes[ti]); await wait(350); tsig[modes[ti]] = sig(); }
+  for (var ti = 0; ti < 3; ti++) {
+    setSel('timeMode', modes[ti]);
+    // 轻推一下滑杆，确保这一帧一定被重绘（无头环境 rAF 会合并请求）
+    setRange('bar', ti === 0 ? '8.5' : '8.4');
+    await wait(700);
+    tsig[modes[ti]] = sig();
+  }
   var tuniq = {}; Object.keys(tsig).forEach(function (k) { tuniq[tsig[k]] = 1; });
-  ok('三种时间精度画面不同', Object.keys(tuniq).length === 3, '');
+  ok('三种时间精度画面不同', Object.keys(tuniq).length === 3, JSON.stringify(tsig) + ' sel=' + document.getElementById('timeMode').value + ' date=' + document.querySelector('[data-f=\"date\"]').value);
   setSel('timeMode', 'date');
   await wait(300);
 

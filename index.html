@@ -1248,6 +1248,11 @@
     if (rafId) return;
     rafId = requestAnimationFrame(function () {
       rafId = 0;
+      if (dragging) {
+        var nowMs = Date.now();
+        if (nowMs - lastDragRender < 70) return;
+        lastDragRender = nowMs;
+      }
       var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
       try { renderInto(el.preview, previewWidth()); }
       catch (e) { console.error(e); toast('渲染出错：' + e.message); return; }
@@ -1256,14 +1261,13 @@
     });
   }
 
-  document.addEventListener('pointerdown', function (e) {
-    if (e.target && e.target.type === 'range') dragging = true;
-  }, true);
-  document.addEventListener('pointerup', function () {
-    if (dragging) { dragging = false; scheduleRender(); }
-  }, true);
-  document.addEventListener('pointercancel', function () {
-    if (dragging) { dragging = false; scheduleRender(); }
+  var dragTimer = 0;
+  var lastDragRender = 0;
+  document.addEventListener('input', function (e) {
+    if (!e.target || e.target.type !== 'range') return;
+    dragging = true;
+    clearTimeout(dragTimer);
+    dragTimer = setTimeout(function () { dragging = false; scheduleRender(); }, 220);
   }, true);
 
   var resizeTimer = 0;
@@ -1846,6 +1850,21 @@
   });
 
   /* 导出 */
+  function canvasBlob(c, type, q) {
+    return new Promise(function (resolve) {
+      if (c.toBlob) {
+        try { c.toBlob(resolve, type, q); return; } catch (e) {}
+      }
+      try {
+        var url = c.toDataURL(type, q);
+        var bin = atob(url.split(',')[1]);
+        var arr = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        resolve(new Blob([arr], { type: type }));
+      } catch (e) { resolve(null); }
+    });
+  }
+
   function downloadBlob(blob, name) {
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1857,23 +1876,32 @@
   }
 
   function download() {
+    try { downloadInner(); }
+    catch (e) { console.error(e); toast('导出出错：' + (e.message || e)); }
+  }
+
+  function downloadInner() {
     if (!state.bitmap) return;
     var isPng = state.ui.format === 'png';
     var type = isPng ? 'image/png' : 'image/jpeg';
     var name = (state.fileName || 'image').replace(/\.[^.]+$/, '') + '-wm.' + (isPng ? 'png' : 'jpg');
 
     function pickHandle() {
-      if (!window.showSaveFilePicker) return Promise.resolve(null);
-      return window.showSaveFilePicker({
+      try {
+        if (!window.showSaveFilePicker || !window.isSecureContext) return Promise.resolve(null);
+      } catch (e) { return Promise.resolve(null); }
+      try {
+        return window.showSaveFilePicker({
         suggestedName: name,
         startIn: 'desktop',
         types: isPng
           ? [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
           : [{ description: 'JPEG 图片', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }]
-      }).catch(function (e) {
-        if (e && e.name === 'AbortError') return 'cancel';
-        return null;
-      });
+        }).catch(function (e) {
+          if (e && e.name === 'AbortError') return 'cancel';
+          return null;
+        });
+      } catch (e) { return Promise.resolve(null); }
     }
 
     pickHandle().then(function (handle) {
@@ -1894,11 +1922,12 @@
           if (maxEdge && longEdge > maxEdge) {
             targetW = Math.max(1, Math.round(sw * maxEdge / longEdge));
           }
-          renderInto(c, Math.min(targetW, 8000));
-          return new Promise(function (resolve) {
-            if (c.toBlob) c.toBlob(resolve, type, isPng ? undefined : state.ui.quality);
-            else resolve(null);
-          }).then(function (blob) { return { blob: blob, canvas: c }; });
+          // 老机型内存有限：长边压到 4096，并释放预览缓存
+          if (longEdge > 4096) targetW = Math.max(1, Math.round(sw * 4096 / longEdge));
+          state.previewSrc = null;
+          renderInto(c, Math.min(targetW, 4096));
+          return canvasBlob(c, type, isPng ? undefined : state.ui.quality)
+            .then(function (blob) { return { blob: blob, canvas: c }; });
         })
         .then(function (res) {
           var blob = res.blob;
