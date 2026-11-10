@@ -791,16 +791,22 @@
     // 右侧：图标 + 分隔线 + 参数
     var pW = params ? measureAt(ctx, params, pS, 700) : 0;
     var lw = logoW(pH);
-    var gap = g.iw * 0.012;
-    var groupW = (lw ? lw + gap * 0.8 : 0) + (params ? pW : 0) + (lw && params ? gap * 0.7 : 0);
+    // 参考图实测：图标到竖线、竖线到参数，各 3.2% 图宽
+    var gapIcon = g.iw * 0.032;
+    var gapParam = g.iw * 0.032;
+    var dividerW = Math.max(1.5, g.iw * 0.0012);
+    var showDivider = !!(lw && params);
+    var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (params ? pW : 0);
     var gx = padR - groupW;
 
     if (lw) {
       drawLogo(ctx, gx, cy, pH, 'left');
-      gx += lw + gap * 0.8;
-      if (params) {
+      gx += lw;
+      if (showDivider) {
+        var divX = gx + gapIcon;
         ctx.fillStyle = line;
-        ctx.fillRect(Math.round(gx - gap * 0.35), Math.round(cy - pH * 0.45), Math.max(1.5, g.iw * 0.0012), Math.round(pH * 0.9));
+        ctx.fillRect(Math.round(divX), Math.round(cy - pH * 0.35), Math.round(dividerW), Math.round(pH * 0.7));
+        gx = divX + dividerW + gapParam;
       }
     }
     if (params) {
@@ -811,7 +817,7 @@
     }
 
     // 左侧：设备名 +（日期/署名）
-    var leftMax = (groupW > 0 ? gx - gap * 1.2 : padR) - padL;
+    var leftMax = (groupW > 0 ? gx - gapIcon : padR) - padL;
     var ns = nameS;
     if (name && leftMax > 10) {
       var nw = measureAt(ctx, name, ns, 500);
