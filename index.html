@@ -141,6 +141,13 @@
   .sld{margin-bottom:11px;touch-action:pan-y}
   .sld .sld-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
   .sld.is-off{opacity:.42}
+  .savepanel{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:14px}
+  .savepanel .box{background:#121214;border:1px solid var(--line2);border-radius:14px;padding:14px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column}
+  .savepanel p{margin:0 0 10px;font-size:12px;color:#b9b9c1;text-align:center;line-height:1.6}
+  .savepanel img{max-width:88vw;max-height:64vh;object-fit:contain;border-radius:8px;background:#000}
+  .savepanel .acts{display:flex;margin-top:12px}
+  .savepanel .acts .btn{flex:1}
+  .savepanel .acts .btn + .btn{margin-left:8px}
   .qnote{font-size:11px;color:#7e7e88;line-height:1.5;margin-top:2px}
   .sld .sld-top span{font-size:12px;color:#b6b6bd}
   .sld output{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -460,16 +467,23 @@
   /* ================= 2. 工具 ================= */
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
-  function toast(msg) {
+  function toast(msg, ms) {
     if (document.body.classList.contains('clean')) return;
     el.toast.textContent = msg;
     el.toast.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(function () { el.toast.classList.remove('show'); }, 2400);
+    toast._t = setTimeout(function () { el.toast.classList.remove('show'); }, ms || 2400);
   }
 
+  window.addEventListener('unhandledrejection', function (e) {
+    try {
+      var r = e && e.reason;
+      toast('异步错误：' + ((r && (r.message || r.name)) || r || '未知'));
+    } catch (err) {}
+  });
+
   window.onerror = function (msg, src, line) {
-    try { toast('脚本错误：' + msg + '（第 ' + line + ' 行）'); } catch (e) {}
+    try { toast('脚本错误：' + msg + '（第 ' + line + ' 行）', 9000); } catch (e) {}
     return false;
   };
 
@@ -1865,6 +1879,37 @@
     });
   }
 
+  function showSavePanel(blob, name, hint) {
+    var url;
+    try { url = URL.createObjectURL(blob); } catch (e) { return toast('生成图片失败'); }
+    var wrap = document.createElement('div');
+    wrap.className = 'savepanel';
+    var box = document.createElement('div');
+    box.className = 'box';
+    var tip = document.createElement('p');
+    tip.textContent = hint || '已生成图片。若相册里没有，长按下图保存';
+    var img = document.createElement('img');
+    img.src = url;
+    var acts = document.createElement('div');
+    acts.className = 'acts';
+    var a = document.createElement('a');
+    a.className = 'btn';
+    a.href = url;
+    a.download = name;
+    a.textContent = '下载';
+    var close = document.createElement('button');
+    close.className = 'btn';
+    close.textContent = '关闭';
+    close.onclick = function () {
+      try { URL.revokeObjectURL(url); } catch (e) {}
+      wrap.parentNode && wrap.parentNode.removeChild(wrap);
+    };
+    acts.appendChild(a); acts.appendChild(close);
+    box.appendChild(tip); box.appendChild(img); box.appendChild(acts);
+    wrap.appendChild(box);
+    document.body.appendChild(wrap);
+  }
+
   function downloadBlob(blob, name) {
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1939,8 +1984,15 @@
               toast('已保存：' + handle.name);
             });
           }
-          downloadBlob(blob, name);
-          toast('已保存：' + name);
+          try {
+            downloadBlob(blob, name);
+            toast('已保存：' + name);
+          } catch (e) {
+            toast('浏览器不支持直接下载，请长按图片保存');
+          }
+          if (/Android/i.test(navigator.userAgent) || window.innerWidth <= 900) {
+            showSavePanel(blob, name, '已生成图片。相册里没有的话，长按下图保存');
+          }
         })
         .catch(function (e) {
           console.error(e);
