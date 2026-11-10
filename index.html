@@ -30,7 +30,10 @@
     border-bottom:1px solid var(--line);background:rgba(9,9,11,.92);position:-webkit-sticky;position:sticky;top:0;z-index:20}
   .logo{display:flex;align-items:center;font-weight:650;letter-spacing:.2px}
   .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 12px rgba(226,0,26,.35);margin-right:9px}
-  .logo em{font-style:normal;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .logo-name{line-height:1}
+  .logo em{font-style:normal;font-weight:400;font-size:10.5px;color:#8a8a92;letter-spacing:.08em;
+    margin-left:10px;padding:3px 9px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(255,255,255,.03);line-height:1}
   .top-actions{display:flex}
   .top-actions .btn + .btn{margin-left:8px}
 
@@ -187,7 +190,7 @@
 </noscript>
 
 <header class="top">
-  <div class="logo"><span class="dot"></span>EXIF 水印 <em>本地 · 离线</em></div>
+  <div class="logo"><span class="dot"></span><span class="logo-name">EXIF 水印</span><em>本地 · 离线</em></div>
   <div class="top-actions">
     <button class="btn" id="pickBtn">选择图片</button>
     <button class="btn solid" id="exportBtn" disabled>导出</button>
