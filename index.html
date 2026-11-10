@@ -274,7 +274,7 @@
     </section>
 
     <section>
-      <h3 class="sec">外观</h3>
+      <div class="sec-row"><h3 class="sec">外观</h3><button class="mini" id="resetLook">重置</button></div>
       <div class="sld" data-show="bar,dark">
         <div class="sld-top"><span>条高</span><output id="barOut">6.5%</output></div>
         <input type="range" id="bar" min="4" max="14" step="0.5" value="6.5">
@@ -1479,6 +1479,21 @@
     $('#logoOut').textContent = e.target.value + '%';
     scheduleRender(); autosave();
   });
+  $('#resetLook').addEventListener('click', function () {
+    var d = clone(DEF_UI);
+    state.ui.bar = d.bar;
+    state.ui.border = d.border;
+    state.ui.logoScale = d.logoScale;
+    state.ui.font = d.font;
+    state.ui.ink = d.ink;
+    state.ui.pos = d.pos;
+    state.ui.logoGap = d.logoGap;
+    syncControls();
+    scheduleRender();
+    autosave();
+    toast('外观已恢复默认');
+  });
+
   $('#logoGap').addEventListener('input', function (e) {
     state.ui.logoGap = parseInt(e.target.value, 10);
     $('#gapOut').textContent = e.target.value;
