@@ -26,7 +26,7 @@
   code{font-family:Consolas,monospace;font-size:11px;color:#a8a8b0}
 
   /* 顶栏 */
-  .top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+  .top{min-height:54px;height:auto;display:flex;align-items:center;justify-content:space-between;padding:8px 18px;box-sizing:border-box;
     border-bottom:1px solid var(--line);background:rgba(9,9,11,.92);position:-webkit-sticky;position:sticky;top:0;z-index:20}
   .logo{display:flex;align-items:center;font-weight:650;letter-spacing:.2px;white-space:nowrap;flex:none}
   .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 12px rgba(226,0,26,.35);margin-right:9px}
@@ -141,6 +141,20 @@
   .sld{margin-bottom:11px;touch-action:pan-y}
   .sld .sld-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
   .sld.is-off{opacity:.42}
+  .grabber{display:none}
+  body.pin .grabber{order:2;display:flex;align-items:center;justify-content:center;height:18px;background:var(--panel);border-top:1px solid var(--line);touch-action:none;cursor:ns-resize;flex:0 0 auto}
+  body.pin .grabber span{width:46px;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}
+  body.pin .grabber:active span{background:rgba(255,255,255,.45)}
+
+  .zoombox{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:220;display:flex;flex-direction:column}
+  .zbar{display:flex;flex-wrap:wrap;align-items:center;padding:10px 12px;background:#101013;border-bottom:1px solid var(--line)}
+  .zbar .btn{height:34px;padding:0 12px;font-size:13px;margin:0 8px 0 0}
+  .zview{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center;padding:8px}
+  .zoombox img{display:block;margin:0 auto;background:#000}
+  .zoombox.fit img{width:100%;height:auto;max-width:100%}
+  .zoombox.actual img{width:auto;height:auto;max-width:none}
+  .zoombox .zspacer{flex:1 1 auto}
+
   .savepanel{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:14px}
   .savepanel .box{background:#121214;border:1px solid var(--line2);border-radius:14px;padding:14px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column}
   .savepanel .sub{display:block;margin-top:7px;font-size:11px;color:#8f8f98;font-weight:400}
@@ -151,6 +165,7 @@
   .savepanel .acts .btn + .btn{margin-left:10px}
   .savepanel .btn.primary{background:#f3f0ea;color:#141414;border-color:transparent}
   .savepanel .btn.ghost{background:#1b1b20;color:#d8d8de}
+  .pin-row{display:none}
   .qnote{font-size:11px;color:#7e7e88;line-height:1.5;margin-top:2px}
   .sld .sld-top span{font-size:12px;color:#b6b6bd}
   .sld output{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -167,7 +182,7 @@
     color:#b9b9c1;font-size:11.5px;cursor:pointer;transition:.15s}
   .chip:hover{border-color:var(--line2);color:#fff;background:#17171c}
   .chip.is-on{border-color:rgba(230,220,198,.5);background:rgba(230,220,198,.09);color:#f3efe6}
-  .logo-name{font-size:10.5px;color:#6a6a73;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .logo-name{font-size:10.5px;color:#6a6a73;flex:1;min-width:0;margin-top:6px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hint{font-size:10.5px;color:#66656e;margin:8px 0 0;line-height:1.6}
   .foot-note{font-size:10.5px;color:#5c5b64;border-top:1px solid var(--line);padding-top:11px;margin-top:6px;line-height:1.7}
 
@@ -214,15 +229,23 @@
   }
 
   @media (max-width:900px){
-    .top{height:50px;padding:0 12px}
+    .top{min-height:50px;height:auto;padding:6px 12px}
     .logo{font-size:13px}
     .logo em{display:none}
     .top-actions .btn{height:32px;padding:0 12px}
+    html{height:100%}
+    .pin-row{display:flex}
     .app{flex-direction:column;height:auto}
-    .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box;display:block;text-align:center}
+    .stage{min-height:42vh;padding:14px 12px;order:1;width:100%;box-sizing:border-box;display:block;text-align:center}
     #preview{max-height:40vh;box-shadow:none;margin:0 auto}
-    .panel{border-left:none;border-top:1px solid var(--line);order:2;padding:16px 14px 40px;flex:1 1 auto;width:auto}
-    .stage-foot{position:static;margin-top:14px;justify-content:center}
+    .panel{border-left:none;border-top:1px solid var(--line);order:3;padding:14px 14px 40px;flex:1 1 auto;width:auto}
+    .stage-foot{display:none}
+
+    body.pin{height:100%;overflow:hidden}
+    body.pin .app{height:100%;overflow:hidden}
+    body.pin .stage{flex:0 0 auto;min-height:0;max-height:var(--pv,42vh);padding:8px 12px 0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+    body.pin #preview{max-height:calc(var(--pv,42vh) - 8px)}
+    body.pin .panel{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
   }
 </style>
 </head>
@@ -254,6 +277,8 @@
     <canvas id="preview" hidden></canvas>
     <div class="stage-foot" id="meta" hidden></div>
   </main>
+
+  <div class="grabber" id="grabber" title="拖动调整预览大小"><span></span></div>
 
   <aside class="panel">
 
@@ -354,6 +379,10 @@
         <div class="sld-top"><span>整体字号</span><output id="fontOut">100%</output></div>
         <input type="range" id="font" min="80" max="130" step="5" value="100">
       </div>
+      <div class="row pin-row">
+        <span>预览固定</span>
+        <label class="switch"><input type="checkbox" id="pinSw" checked><span></span></label>
+      </div>
       <div class="row">
         <span>字体</span>
         <select id="fontFamily" class="sel" style="width:140px">
@@ -385,14 +414,6 @@
 
     <section>
       <h3 class="sec">导出</h3>
-      <div class="row">
-        <span>尺寸</span>
-        <select id="exportSize" class="sel" style="width:118px">
-          <option value="0">原图</option>
-          <option value="3000">长边 3000</option>
-          <option value="2048">长边 2048</option>
-        </select>
-      </div>
       <div class="row">
         <span>格式</span>
         <select id="format" class="sel" style="width:110px">
@@ -447,7 +468,7 @@
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
     showDate: true, timeMode: 'date', ink: 'auto',
-    format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
+    format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
   var state = {
@@ -1260,6 +1281,64 @@
     }
   }
 
+  function previewMaxVh() {
+    var cv = el.preview, st = document.querySelector('.stage');
+    var vh = 56;
+    if (cv && cv.width && st) {
+      var availW = st.clientWidth - 24;
+      if (availW > 0) {
+        var fitH = cv.height * (availW / cv.width);
+        vh = Math.min(56, fitH / window.innerHeight * 100 + 0.5);
+      }
+    }
+    return Math.max(30, Math.round(vh * 10) / 10);
+  }
+
+  function applyPreviewH() {
+    var v = state.ui.previewVh || 42;
+    var max = previewMaxVh();
+    if (v > max) { v = max; state.ui.previewVh = v; }
+    document.body.style.setProperty('--pv', v + 'vh');
+  }
+
+  function applyPin() {
+    var on = state.ui.pinPreview !== false;
+    document.body.classList.toggle('pin', on && window.innerWidth <= 900);
+  }
+
+  (function () {
+    var g = document.getElementById('grabber');
+    if (!g) return;
+    var dragging = false, startY = 0, startV = 42;
+    function yOf(e) { return e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY; }
+    function down(e) {
+      dragging = true;
+      startY = yOf(e);
+      startV = state.ui.previewVh || 42;
+      if (e.cancelable) e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      var dv = (yOf(e) - startY) / window.innerHeight * 100;
+      var v = Math.max(28, Math.min(previewMaxVh(), startV + dv));
+      state.ui.previewVh = Math.round(v * 10) / 10;
+      applyPreviewH();
+      if (e.cancelable) e.preventDefault();
+    }
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      autosave();
+    }
+    g.addEventListener('touchstart', down, { passive: false });
+    g.addEventListener('touchmove', move, { passive: false });
+    g.addEventListener('touchend', up);
+    g.addEventListener('touchcancel', up);
+    g.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  })();
+
   function scheduleRender() {
     if (!state.bitmap) return;
     if (rafId) return;
@@ -1275,6 +1354,7 @@
       catch (e) { console.error(e); toast('渲染出错：' + e.message); return; }
       var t1 = (window.performance && performance.now) ? performance.now() : Date.now();
       tuneQuality(t1 - t0);
+      applyPreviewH();
     });
   }
 
@@ -1290,7 +1370,7 @@
   var resizeTimer = 0;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(scheduleRender, 180);
+    resizeTimer = setTimeout(function () { applyPin(); scheduleRender(); }, 180);
   });
   window.addEventListener('orientationchange', function () {
     clearTimeout(resizeTimer);
@@ -1616,12 +1696,12 @@
     setRange('#font', state.ui.font * 100, '#fontOut', '%', 0);
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
-    $('#exportSize').value = String(state.ui.exportMax || 0);
     setRange('#pos', (state.ui.pos == null ? 75 : state.ui.pos), '#posOut', '', 0);
     setRange('#logoGap', (state.ui.logoGap == null ? 53 : state.ui.logoGap), '#gapOut', '', 0);
     $$('#barAlignSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === (state.ui.barAlign || 'center'));
     });
+    $('#pinSw').checked = state.ui.pinPreview !== false;
     $('#fontFamily').value = state.ui.fontFamily || 'default';
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
@@ -1662,9 +1742,7 @@
     if (!state.bitmap && e.target.closest('#empty')) el.file.click();
   });
   $('#pickBtn').addEventListener('click', function () { el.file.click(); });
-  el.preview.addEventListener('click', function () {
-    if (state.bitmap && window.innerWidth <= 600) el.file.click();
-  });
+  el.preview.addEventListener('click', openPreview);
 
   el.file.addEventListener('change', function () {
     var f = el.file.files && el.file.files[0];
@@ -1763,6 +1841,10 @@
     state.ui.barAlign = d.barAlign;
     state.ui.timeMode = d.timeMode;
     state.ui.fontFamily = d.fontFamily;
+    state.ui.pinPreview = d.pinPreview;
+    state.ui.previewVh = d.previewVh;
+    applyPin();
+    applyPreviewH();
     syncControls();
     scheduleRender();
     autosave();
@@ -1789,8 +1871,10 @@
     $('#qOut').textContent = e.target.value + '%';
     autosave();
   });
-  $('#exportSize').addEventListener('change', function (e) {
-    state.ui.exportMax = parseInt(e.target.value, 10) || 0;
+  $('#pinSw').addEventListener('change', function (e) {
+    state.ui.pinPreview = e.target.checked;
+    applyPin();
+    scheduleRender();
     autosave();
   });
   $('#format').addEventListener('change', function (e) {
@@ -1901,6 +1985,76 @@
     });
   }
 
+  var zBox = null, zImg = null, zView = null, activePanel = null;
+
+  function openPreview() {
+    if (!state.bitmap || !el.preview.width) return;
+    var url;
+    try {
+      var big = makeCanvas(1, 1);
+      renderInto(big, Math.min(state.bitmap.width, 2000));
+      url = big.toDataURL('image/jpeg', 0.92);
+    } catch (e) { return toast('生成预览失败'); }
+
+    if (!zBox) {
+      zBox = document.createElement('div');
+      zBox.className = 'zoombox fit';
+      var bar = document.createElement('div');
+      bar.className = 'zbar';
+
+      var bFit = document.createElement('button');
+      bFit.className = 'btn primary';
+      bFit.textContent = '适应屏幕';
+      bFit.onclick = function () { setZoom(false); };
+
+      var bPick = document.createElement('button');
+      bPick.className = 'btn';
+      bPick.textContent = '更换照片';
+      bPick.onclick = function () { closePreview(); el.file.click(); };
+
+      var bClose = document.createElement('button');
+      bClose.className = 'btn';
+      bClose.style.marginLeft = 'auto';
+      bClose.textContent = '关闭';
+      bClose.onclick = closePreview;
+
+      bar.appendChild(bFit); bar.appendChild(bPick); bar.appendChild(bClose);
+
+      zView = document.createElement('div');
+      zView.className = 'zview';
+      zImg = document.createElement('img');
+      zView.appendChild(zImg);
+
+      zBox.appendChild(bar); zBox.appendChild(zView);
+      document.body.appendChild(zBox);
+    }
+
+    function setZoom(actual) {
+      zBox.classList.toggle('actual', actual);
+      zBox.classList.toggle('fit', !actual);
+      zView.scrollTop = 0;
+      zView.scrollLeft = 0;
+    }
+
+    zImg.onload = function () {
+      zBox.classList.add('fit');
+      zBox.classList.remove('actual');
+    };
+    zImg.src = url;
+    zBox.style.display = 'flex';
+  }
+
+  function closePreview() {
+    if (zBox) zBox.style.display = 'none';
+  }
+
+  // 原生返回键先问页面：有浮层就关浮层
+  window.__onBack = function () {
+    if (zBox && zBox.style.display !== 'none' && zBox.style.display !== '') { closePreview(); return true; }
+    if (activePanel && activePanel.parentNode) { activePanel.parentNode.removeChild(activePanel); activePanel = null; return true; }
+    return false;
+  };
+
   function showSavePanel(blob, name, hint) {
     var url;
     try { url = URL.createObjectURL(blob); } catch (e) { return toast('生成图片失败'); }
@@ -1908,6 +2062,7 @@
     var fileMode = isAndroid && location.protocol === 'file:';
     var wrap = document.createElement('div');
     wrap.className = 'savepanel';
+    activePanel = wrap;
     var box = document.createElement('div');
     box.className = 'box';
     var tip = document.createElement('p');
@@ -2046,11 +2201,7 @@
           var c = makeCanvas(1, 1);
           var sw = state.bitmap.width, sh = state.bitmap.height;
           var longEdge = Math.max(sw, sh);
-          var maxEdge = state.ui.exportMax || 0;
           var targetW = sw;
-          if (maxEdge && longEdge > maxEdge) {
-            targetW = Math.max(1, Math.round(sw * maxEdge / longEdge));
-          }
           // 老机型内存有限：长边压到 4096，并释放预览缓存
           if (longEdge > 4096) targetW = Math.max(1, Math.round(sw * 4096 / longEdge));
           state.previewSrc = null;
@@ -2061,6 +2212,20 @@
         .then(function (res) {
           var blob = res.blob;
           if (!blob) { toast('导出失败，试试换 PNG'); return; }
+          // 在 APK 里：交给原生写入相册，不经过浏览器下载器
+          if (window.AndroidBridge && window.AndroidBridge.saveImage) {
+            try {
+              var fr = new FileReader();
+              fr.onload = function () {
+                var b64 = String(fr.result).split(',')[1];
+                var rr = AndroidBridge.saveImage(b64, name, type);
+                if (String(rr).indexOf('ok:') === 0) toast('已保存到相册：' + name, 5000);
+                else toast('保存失败：' + rr, 6000);
+              };
+              fr.readAsDataURL(blob);
+              return;
+            } catch (e) { toast('保存失败：' + e.message, 6000); }
+          }
           if (handle) {
             return handle.createWritable().then(function (w) {
               return w.write(blob).then(function () { return w.close(); });
@@ -2134,6 +2299,8 @@
   }
 
   boot();
+  applyPin();
+  applyPreviewH();
 
   // 内嵌字体异步解码，就绪后补一次重绘
   if (document.fonts && document.fonts.load) {

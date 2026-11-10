@@ -169,32 +169,14 @@
       }
     });
   };
-  setSel('exportSize', '2048');
-  await wait(300);
   document.getElementById('exportBtn').click();
   for (var w = 0; w < 40 && !saved; w++) await wait(250);
   ok('导出流程完成', !!saved && saved.size > 1000, saved ? saved.size + ' B' : 'no blob');
-  var edge2048 = 0;
   if (saved) {
     try {
       var bmp = await createImageBitmap(saved);
-      edge2048 = Math.max(bmp.width, bmp.height);
-      ok('2048 导出尺寸合理（含边框）', edge2048 >= 2040 && edge2048 <= 2200, bmp.width + 'x' + bmp.height);
+      ok('原图导出尺寸正确（含白边）', bmp.width === 2492 && bmp.height === 1848, bmp.width + 'x' + bmp.height);
     } catch (e) { ok('导出图可解码', false, e.message); }
-  }
-
-  // 原图尺寸对比
-  saved = null;
-  setSel('exportSize', '0');
-  await wait(300);
-  document.getElementById('exportBtn').click();
-  for (var w2 = 0; w2 < 40 && !saved; w2++) await wait(250);
-  if (saved) {
-    try {
-      var bmp2 = await createImageBitmap(saved);
-      var edge0 = Math.max(bmp2.width, bmp2.height);
-      ok('原图导出比 2048 大', edge0 > edge2048, bmp2.width + 'x' + bmp2.height);
-    } catch (e) { ok('原图导出可解码', false, e.message); }
   }
 
   ok('无运行时错误', errs.length === 0, errs.join(' | '));
