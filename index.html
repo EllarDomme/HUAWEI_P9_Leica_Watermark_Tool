@@ -759,12 +759,13 @@
     var sub = darkTpl ? 'rgba(242,242,242,.52)' : 'rgba(20,20,20,.48)';
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
-    var padL = g.bd + g.iw * 0.035;
-    var padR = g.cw - g.bd - g.iw * 0.035;
+    var padL = g.bd + g.iw * 0.021;
+    var padR = g.cw - g.bd - g.iw * 0.021;
 
     var name = deviceName();
     var date = dateText();
-    var params = paramsLine().replace(/\s+/g, ' ');
+    var tokens = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean);
+    var params = tokens.join(' ');
     var sig = f.signature || '';
     var l2 = [date, sig].filter(Boolean).join('   ');
 
@@ -789,14 +790,16 @@
     var cy = (ui.barAlign === 'top') ? Math.min(topY, centerY) : centerY;
 
     // 右侧：图标 + 分隔线 + 参数
-    var pW = params ? measureAt(ctx, params, pS, 700) : 0;
+    // 参考图实测：参数之间 20px/1470 = 1.36% 图宽
+    var paramGap = g.iw * 0.0136;
+    var pSizes = tokens.map(function (t) { return measureAt(ctx, t, pS, 700); });
+    var pW = pSizes.reduce(function (a, b) { return a + b; }, 0) + paramGap * Math.max(0, tokens.length - 1);
     var lw = logoW(pH);
-    // 参考图实测：图标到竖线、竖线到参数，各 3.2% 图宽
     var gapIcon = g.iw * 0.032;
     var gapParam = g.iw * 0.032;
     var dividerW = Math.max(1.5, g.iw * 0.0012);
-    var showDivider = !!(lw && params);
-    var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (params ? pW : 0);
+    var showDivider = !!(lw && tokens.length);
+    var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (tokens.length ? pW : 0);
     var gx = padR - groupW;
 
     if (lw) {
@@ -809,11 +812,20 @@
         gx = divX + dividerW + gapParam;
       }
     }
-    if (params) {
-      var ps = pS;
+    if (tokens.length) {
+      var ps = pS, pgap = paramGap, sizes = pSizes.slice();
       var maxW = padR - gx;
-      if (pW > maxW && maxW > 10) ps = Math.max(pS * 0.5, ps * maxW / pW);
-      drawT(ctx, params, gx, cy, { size: ps, weight: 700, color: ink });
+      if (pW > maxW && maxW > 10) {
+        var kk = maxW / pW;
+        ps = Math.max(pS * 0.5, ps * kk);
+        pgap *= kk;
+        sizes = tokens.map(function (t) { return measureAt(ctx, t, ps, 700); });
+      }
+      var tx = gx;
+      tokens.forEach(function (t, i) {
+        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: ink });
+        tx += sizes[i] + pgap;
+      });
     }
 
     // 左侧：设备名 +（日期/署名）
