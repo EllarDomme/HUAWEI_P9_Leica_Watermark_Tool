@@ -304,7 +304,7 @@
         <div class="sld-top"><span>图标间距</span><output id="gapOut">53</output></div>
         <input type="range" id="logoGap" min="0" max="100" step="5" value="53">
       </div>
-      <div class="row">
+      <div class="row" data-show="center,corner,wordmark">
         <span>文字颜色</span>
         <div class="seg" id="inkSeg">
           <button data-v="auto" class="on">自动</button>
@@ -812,12 +812,12 @@
     var gx = padR - groupW;
 
     if (lw) {
-      drawLogo(ctx, gx, line1Y, pH, 'left');
+      drawLogo(ctx, gx, cy, pH, 'left');
       gx += lw;
       if (showDivider) {
         var divX = gx + gapIcon;
         ctx.fillStyle = line;
-        ctx.fillRect(Math.round(divX), Math.round(line1Y - pH * 0.475), Math.round(dividerW), Math.round(pH * 0.95));
+        ctx.fillRect(Math.round(divX), Math.round(cy - pH * 0.475), Math.round(dividerW), Math.round(pH * 0.95));
         gx = divX + dividerW + gapParam;
       }
     }
@@ -832,7 +832,7 @@
       }
       var tx = gx;
       tokens.forEach(function (t, i) {
-        drawT(ctx, t, tx, line1Y, { size: ps, weight: 700, color: ink });
+        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: ink });
         tx += sizes[i] + pgap;
       });
     }
