@@ -789,6 +789,15 @@
     var topY = g.barTop + g.iw * 0.012 + blockH / 2;
     var cy = (ui.barAlign === 'top') ? Math.min(topY, centerY) : centerY;
 
+    // 第一行（设备名 / 参数 / 图标）共用一条水平线，日期另起一行
+    var line1Y = cy, l2Y = cy;
+    if (l2) {
+      var totalH = nameS * 1.25 + gapLine + subS * 1.3;
+      var topEdge = cy - totalH / 2;
+      line1Y = topEdge + nameS * 0.625;
+      l2Y = topEdge + nameS * 1.25 + gapLine + subS * 0.65;
+    }
+
     // 右侧：图标 + 分隔线 + 参数
     // 参考图实测：参数之间 20px/1470 = 1.36% 图宽
     var paramGap = g.iw * 0.0136;
@@ -803,12 +812,12 @@
     var gx = padR - groupW;
 
     if (lw) {
-      drawLogo(ctx, gx, cy, pH, 'left');
+      drawLogo(ctx, gx, line1Y, pH, 'left');
       gx += lw;
       if (showDivider) {
         var divX = gx + gapIcon;
         ctx.fillStyle = line;
-        ctx.fillRect(Math.round(divX), Math.round(cy - pH * 0.35), Math.round(dividerW), Math.round(pH * 0.7));
+        ctx.fillRect(Math.round(divX), Math.round(line1Y - pH * 0.35), Math.round(dividerW), Math.round(pH * 0.7));
         gx = divX + dividerW + gapParam;
       }
     }
@@ -823,7 +832,7 @@
       }
       var tx = gx;
       tokens.forEach(function (t, i) {
-        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: ink });
+        drawT(ctx, t, tx, line1Y, { size: ps, weight: 700, color: ink });
         tx += sizes[i] + pgap;
       });
     }
@@ -836,15 +845,7 @@
       if (nw > leftMax) ns = Math.max(nameS * 0.5, ns * leftMax / nw);
     }
 
-    var nameY, l2Y;
-    if (l2) {
-      var total = nameS * 1.25 + gapLine + subS * 1.3;
-      nameY = cy - total / 2 + nameS * 0.625;
-      l2Y = cy + total / 2 - subS * 0.65;
-    } else {
-      nameY = cy;
-    }
-    if (name) drawT(ctx, name, padL, nameY, { size: ns, weight: 500, color: nameInk, spacing: ns * 0.03 });
+    if (name) drawT(ctx, name, padL, line1Y, { size: ns, weight: 500, color: nameInk, spacing: ns * 0.03 });
     if (l2) drawT(ctx, l2, padL, l2Y, { size: subS, weight: 400, color: sub });
   }
 
@@ -1048,7 +1049,8 @@
       bd = Math.round(iw * ui.border);
       barH = Math.max(8, Math.round(iw * ui.bar));
       cw = iw + bd * 2;
-      ch = ih + bd * 2 + barH;
+      // 底部不再额外留白边，白条直接接在照片下沿，文字才真正居中
+      ch = ih + bd + barH;
     } else if (tpl === 'film') {
       bd = Math.round(iw * 0.045);
       var bb = Math.round(iw * 0.13);
