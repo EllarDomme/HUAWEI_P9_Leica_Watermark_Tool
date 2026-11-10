@@ -263,7 +263,14 @@
     <section>
       <h3 class="sec">拍摄时间</h3>
       <div class="row"><span>显示拍摄时间</span><label class="switch"><input type="checkbox" id="dateSw" checked><span></span></label></div>
-      <input type="text" data-f="date" placeholder="2024.05.01">
+      <div class="row"><span>时间精度</span>
+        <select id="timeMode" class="sel" style="width:118px">
+          <option value="date">仅日期</option>
+          <option value="min">到分钟</option>
+          <option value="sec">到秒</option>
+        </select>
+      </div>
+      <input type="text" data-f="date" placeholder="2024.05.01 20:29">
     </section>
 
     <section>
@@ -362,7 +369,7 @@
   };
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1,
-    showDate: true, ink: 'auto',
+    showDate: true, timeMode: 'date', ink: 'auto',
     format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
   };
 
@@ -443,6 +450,12 @@
     if (HAS_LS) ctx.letterSpacing = '0px';
   }
 
+  function fitText(ctx, text, size, weight, maxW, spacing) {
+    if (!text) return size;
+    var w = measureAt(ctx, text, size, weight, spacing || 0);
+    return w > maxW ? Math.max(size * 0.55, size * maxW / w) : size;
+  }
+
   function drawCover(ctx, img, x, y, w, h) {
     var r = Math.max(w / img.width, h / img.height);
     var dw = img.width * r, dh = img.height * r;
@@ -463,7 +476,12 @@
   }
 
   function dateText() {
-    return (state.ui.showDate && state.fields.date) ? state.fields.date : '';
+    if (!state.ui.showDate || !state.fields.date) return '';
+    var s = String(state.fields.date).trim();
+    var parts = s.split(/\s+/);
+    if (parts.length < 2 || state.ui.timeMode === 'date') return parts[0];
+    var t = parts[1];
+    return parts[0] + ' ' + (state.ui.timeMode === 'min' ? t.slice(0, 5) : t);
   }
 
   /* ================= 3. EXIF 解析 ================= */
@@ -652,8 +670,11 @@
   }
 
   function fmtDate(s) {
-    var m = /^(\d{4})[:\-\.](\d{2})[:\-\.](\d{2})/.exec(String(s));
-    return m ? m[1] + '.' + m[2] + '.' + m[3] : String(s);
+    var m = /^(\d{4})[:\-\.](\d{2})[:\-\.](\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/.exec(String(s));
+    if (!m) return String(s);
+    var out = m[1] + '.' + m[2] + '.' + m[3];
+    if (m[4]) out += ' ' + m[4] + ':' + m[5] + (m[6] ? ':' + m[6] : '');
+    return out;
   }
 
   // 相机/手机写进 EXIF 的机型代号，映射成好认的名字
@@ -859,7 +880,7 @@
     }
 
     if (name) drawT(ctx, name, padL, line1Y, { size: ns, weight: 500, color: nameInk, spacing: ns * 0.03 });
-    if (l2) drawT(ctx, l2, padL, l2Y, { size: subS, weight: 400, color: sub });
+    if (l2) drawT(ctx, l2, padL, l2Y, { size: fitText(ctx, l2, subS, 400, padR - padL), weight: 400, color: sub });
   }
 
   function drawCenter(ctx, g) {
@@ -902,21 +923,29 @@
         drawLogo(ctx, g.iw / 2, cy, it.h, 'center');
       } else if (it.type === 'line2') {
         // 参数用主色，日期用弱一档的颜色，视觉上分开
-        var pw = params ? measureAt(ctx, params, it.size, 400) : 0;
-        var dw = date ? measureAt(ctx, date, it.size * 0.92, 400) : 0;
-        var sw = (params && date) ? measureAt(ctx, '   ', it.size, 400) : 0;
+        var l2s = it.size;
+        var pw = params ? measureAt(ctx, params, l2s, 400) : 0;
+        var dw = date ? measureAt(ctx, date, l2s * 0.92, 400) : 0;
+        var sw = (params && date) ? measureAt(ctx, '   ', l2s, 400) : 0;
+        var totalW = pw + sw + dw;
+        if (totalW > g.iw * 0.90) {
+          l2s *= (g.iw * 0.90) / totalW;
+          pw = params ? measureAt(ctx, params, l2s, 400) : 0;
+          dw = date ? measureAt(ctx, date, l2s * 0.92, 400) : 0;
+          sw = (params && date) ? measureAt(ctx, '   ', l2s, 400) : 0;
+        }
         var sx = g.iw / 2 - (pw + sw + dw) / 2;
         var dim = ink === '#ffffff' ? 'rgba(255,255,255,.68)' : 'rgba(20,20,20,.62)';
         if (params) {
           drawT(ctx, params, sx, cy, {
-            size: it.size, weight: 400, color: ink, align: 'left',
-            shadow: shadow, shadowBlur: it.size * 0.5, shadowY: it.size * 0.05
+            size: l2s, weight: 400, color: ink, align: 'left',
+            shadow: shadow, shadowBlur: l2s * 0.5, shadowY: l2s * 0.05
           });
         }
         if (date) {
           drawT(ctx, date, sx + pw + sw, cy, {
-            size: it.size * 0.92, weight: 400, color: dim, align: 'left',
-            shadow: shadow, shadowBlur: it.size * 0.5, shadowY: it.size * 0.05
+            size: l2s * 0.92, weight: 400, color: dim, align: 'left',
+            shadow: shadow, shadowBlur: l2s * 0.5, shadowY: l2s * 0.05
           });
         }
       } else {
@@ -976,8 +1005,7 @@
     }
     if (third) {
       y += lineGap + l2 * 0.6;
-      drawT(ctx, third, pad, y, {
-        size: l2 * 0.96, weight: 400, color: ink,
+      drawT(ctx, third, pad, y, { size: fitText(ctx, third, l2 * 0.96, 400, g.iw - pad * 2), weight: 400, color: ink,
         shadow: shadow, shadowBlur: l2 * 0.5, shadowY: l2 * 0.05
       });
     }
@@ -1011,7 +1039,8 @@
     lines.forEach(function (l) {
       var h = l.size * 1.15;
       drawT(ctx, l.text, g.iw / 2, y + h / 2, {
-        size: l.size, weight: l.weight, color: ink, align: 'center', spacing: l.spacing || 0,
+        size: fitText(ctx, l.text, l.size, l.weight, g.iw * 0.9, l.spacing || 0),
+        weight: l.weight, color: ink, align: 'center', spacing: l.spacing || 0,
         shadow: shadow, shadowBlur: l.size * 0.5, shadowY: l.size * 0.04
       });
       y += h + l.gap;
@@ -1044,7 +1073,7 @@
     if (params) drawT(ctx, params, right, y1, { size: s2, weight: 500, color: ink, align: 'right' });
 
     var l2 = date;
-    if (l2) drawT(ctx, l2, left, y2, { size: s2, weight: 400, color: sub });
+    if (l2) drawT(ctx, l2, left, y2, { size: fitText(ctx, l2, s2, 400, right - left), weight: 400, color: sub });
     if (sig) drawT(ctx, sig, right, y2, { size: s2 * 0.96, weight: 400, color: sub, align: 'right' });
   }
 
@@ -1409,6 +1438,7 @@
     $$('#barAlignSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === (state.ui.barAlign || 'center'));
     });
+    $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
     $('#quality').disabled = state.ui.format === 'png';
 
@@ -1491,6 +1521,11 @@
     });
   });
 
+  $('#timeMode').addEventListener('change', function (e) {
+    state.ui.timeMode = e.target.value;
+    scheduleRender();
+    autosave();
+  });
   $('#dateSw').addEventListener('change', function (e) {
     state.ui.showDate = e.target.checked;
     scheduleRender();
@@ -1532,6 +1567,7 @@
     state.ui.pos = d.pos;
     state.ui.logoGap = d.logoGap;
     state.ui.barAlign = d.barAlign;
+    state.ui.timeMode = d.timeMode;
     syncControls();
     scheduleRender();
     autosave();
