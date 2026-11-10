@@ -140,6 +140,7 @@
 
   .sld{margin-bottom:11px;touch-action:pan-y}
   .sld .sld-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .sld.is-off{opacity:.42}
   .sld .sld-top span{font-size:12px;color:#b6b6bd}
   .sld output{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:none;cursor:pointer;
@@ -388,7 +389,7 @@
           <option value="png">PNG</option>
         </select>
       </div>
-      <div class="sld">
+      <div class="sld" id="qualityRow">
         <div class="sld-top"><span>JPEG 质量</span><output id="qOut">92%</output></div>
         <input type="range" id="quality" min="60" max="100" value="92">
       </div>
@@ -1486,6 +1487,13 @@
   }
 
   /* ================= 9. 控件同步与绑定 ================= */
+  function syncQuality() {
+    var isPng = state.ui.format === 'png';
+    $('#quality').disabled = isPng;
+    $('#qualityRow').classList.toggle('is-off', isPng);
+    $('#qOut').textContent = isPng ? '无损' : Math.round(state.ui.quality * 100) + '%';
+  }
+
   function syncControls() {
     $$('[data-f]').forEach(function (input) {
       input.value = state.fields[input.dataset.f] || '';
@@ -1514,7 +1522,7 @@
     $('#fontFamily').value = state.ui.fontFamily || 'default';
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
-    $('#quality').disabled = state.ui.format === 'png';
+    syncQuality();
 
     $$('#inkSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === state.ui.ink);
@@ -1684,7 +1692,7 @@
   });
   $('#format').addEventListener('change', function (e) {
     state.ui.format = e.target.value;
-    $('#quality').disabled = state.ui.format === 'png';
+    syncQuality();
     autosave();
   });
 
