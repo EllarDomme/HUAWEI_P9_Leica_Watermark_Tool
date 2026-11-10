@@ -295,6 +295,10 @@
         <div class="sld-top"><span>垂直位置</span><output id="posOut">75</output></div>
         <input type="range" id="pos" min="0" max="100" step="5" value="75">
       </div>
+      <div class="sld" data-show="center">
+        <div class="sld-top"><span>图标间距</span><output id="gapOut">53</output></div>
+        <input type="range" id="logoGap" min="0" max="100" step="5" value="53">
+      </div>
       <div class="row">
         <span>文字颜色</span>
         <div class="seg" id="inkSeg">
@@ -354,7 +358,7 @@
   var DEF_UI = {
     bar: 0.065, border: 0.006, logoScale: 1, font: 1,
     showDate: true, showLoc: false, ink: 'auto',
-    format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75
+    format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
   };
 
   var state = {
@@ -826,7 +830,8 @@
     var sS = g.iw * 0.016 * ui.font;
 
     var items = [];
-    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.036 });
+    var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
+    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * (100 - gapV) / 100 });
     if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013 });
     if (params || date) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
     if (sig) items.push({ type: 'text', text: sig, size: sS, weight: 400, gap: sS * 1.05 });
@@ -1355,6 +1360,7 @@
 
     $('#exportSize').value = String(state.ui.exportMax || 0);
     setRange('#pos', (state.ui.pos == null ? 75 : state.ui.pos), '#posOut', '', 0);
+    setRange('#logoGap', (state.ui.logoGap == null ? 53 : state.ui.logoGap), '#gapOut', '', 0);
     $('#format').value = state.ui.format;
     $('#quality').disabled = state.ui.format === 'png';
 
@@ -1471,6 +1477,11 @@
   $('#logo').addEventListener('input', function (e) {
     state.ui.logoScale = parseFloat(e.target.value) / 100;
     $('#logoOut').textContent = e.target.value + '%';
+    scheduleRender(); autosave();
+  });
+  $('#logoGap').addEventListener('input', function (e) {
+    state.ui.logoGap = parseInt(e.target.value, 10);
+    $('#gapOut').textContent = e.target.value;
     scheduleRender(); autosave();
   });
   $('#pos').addEventListener('input', function (e) {
