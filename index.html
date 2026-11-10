@@ -1984,14 +1984,21 @@
               toast('已保存：' + handle.name);
             });
           }
-          try {
-            downloadBlob(blob, name);
-            toast('已保存：' + name);
-          } catch (e) {
-            toast('浏览器不支持直接下载，请长按图片保存');
-          }
-          if (/Android/i.test(navigator.userAgent) || window.innerWidth <= 900) {
-            showSavePanel(blob, name, '已生成图片。相册里没有的话，长按下图保存');
+          var isMobile = /Android/i.test(navigator.userAgent) || window.innerWidth <= 900;
+          if (isMobile) {
+            // 手机端不走浏览器下载（老 WebView 常被拦截或报错），直接给长按保存面板
+            try {
+              showSavePanel(blob, name, '已生成图片。长按下面的图片即可保存到相册');
+            } catch (e) {
+              toast('生成预览失败：' + (e.message || e));
+            }
+          } else {
+            try {
+              downloadBlob(blob, name);
+              toast('已保存：' + name);
+            } catch (e) {
+              showSavePanel(blob, name, '浏览器不支持直接下载，请长按图片保存');
+            }
           }
         })
         .catch(function (e) {
