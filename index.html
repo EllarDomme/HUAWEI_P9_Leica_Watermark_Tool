@@ -1905,6 +1905,7 @@
     var url;
     try { url = URL.createObjectURL(blob); } catch (e) { return toast('生成图片失败'); }
     var isAndroid = /Android/i.test(navigator.userAgent);
+    var fileMode = isAndroid && location.protocol === 'file:';
     var wrap = document.createElement('div');
     wrap.className = 'savepanel';
     var box = document.createElement('div');
@@ -1946,6 +1947,13 @@
           toast('分享没成功，试试长按图片', 4000);
         });
       });
+    } else if (!fileMode) {
+      var dl = document.createElement('a');
+      dl.className = 'btn primary';
+      dl.href = url;
+      dl.download = name;
+      dl.textContent = '下载';
+      acts.appendChild(dl);
     } else {
       addBtn('打开图片', 'primary', function () {
         try {
