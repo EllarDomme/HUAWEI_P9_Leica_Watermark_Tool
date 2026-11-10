@@ -16,7 +16,7 @@
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:var(--bg); color:var(--ink);
+    margin:0; background:var(--bg); color:var(--ink); overflow-x:hidden;
     font:13px/1.5 "Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
@@ -26,11 +26,12 @@
 
   /* 顶栏 */
   .top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
-    border-bottom:1px solid var(--line);background:rgba(9,9,11,.92);position:sticky;top:0;z-index:20}
-  .logo{display:flex;align-items:center;gap:9px;font-weight:650;letter-spacing:.2px}
-  .logo .dot{width:9px;height:9px;border-radius:2px;background:var(--accent);box-shadow:0 0 12px rgba(217,249,90,.55)}
+    border-bottom:1px solid var(--line);background:rgba(9,9,11,.92);position:-webkit-sticky;position:sticky;top:0;z-index:20}
+  .logo{display:flex;align-items:center;font-weight:650;letter-spacing:.2px}
+  .logo .dot{width:9px;height:9px;border-radius:2px;background:var(--accent);box-shadow:0 0 12px rgba(217,249,90,.55);margin-right:9px}
   .logo em{font-style:normal;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.08em}
-  .top-actions{display:flex;gap:8px}
+  .top-actions{display:flex}
+  .top-actions .btn + .btn{margin-left:8px}
 
   .btn{height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:#17171a;cursor:pointer;transition:.15s;white-space:nowrap}
   .btn:hover{background:#1f1f24;border-color:rgba(255,255,255,.22)}
@@ -40,24 +41,27 @@
   .btn.wide{width:100%;height:42px;margin-top:6px}
 
   /* 主体 */
-  .app{display:grid;grid-template-columns:minmax(0,1fr) 400px;height:calc(100vh - 54px)}
+  .app{display:flex;height:calc(100vh - 54px)}
+  .stage{flex:1 1 auto}
+  .panel{flex:0 0 400px;width:400px}
   .stage{position:relative;display:flex;align-items:center;justify-content:center;padding:30px;min-width:0;overflow:hidden;
     background:radial-gradient(900px 500px at 50% 0%,rgba(255,255,255,.045),transparent 70%),#0a0a0c}
-  .stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  .stage::before{content:"";position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;
     background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
-    background-size:44px 44px;mask-image:radial-gradient(70% 60% at 50% 45%,#000 30%,transparent 100%)}
+    background-size:44px 44px;-webkit-mask-image:radial-gradient(70% 60% at 50% 45%,#000 30%,transparent 100%);mask-image:radial-gradient(70% 60% at 50% 45%,#000 30%,transparent 100%)}
   .stage.drag{outline:1px dashed rgba(217,249,90,.55);outline-offset:-14px}
-  #preview{max-width:100%;max-height:calc(100vh - 200px);width:auto;height:auto;border-radius:2px;
+  #preview{display:block;margin:auto;max-width:100%;max-height:calc(100vh - 200px);width:auto;height:auto;border-radius:2px;
     box-shadow:0 28px 70px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.05);position:relative;z-index:1}
   .empty{position:relative;z-index:1;width:min(430px,100%);padding:44px 26px;text-align:center;cursor:pointer;
     border:1px dashed rgba(255,255,255,.16);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.008));transition:.18s}
   .empty:hover{border-color:rgba(217,249,90,.45);background:rgba(217,249,90,.03)}
-  .empty .ico{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;display:grid;place-items:center;font-size:24px;font-weight:300;
+  .empty .ico{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:300;
     background:#16161a;border:1px solid var(--line2);color:var(--accent)}
   .empty h2{margin:0 0 6px;font-size:15px;font-weight:600}
   .empty p{margin:0;color:var(--muted);font-size:12px}
   .stage-foot{position:absolute;left:22px;bottom:16px;z-index:2;font-size:11.5px;color:var(--muted);
-    display:flex;align-items:center;gap:8px}
+    display:flex;align-items:center}
+  .stage-foot > * + *{margin-left:8px}
   .stage-foot .sep{opacity:.35}
   .stage-foot .ok{color:var(--accent);opacity:.85}
 
@@ -75,37 +79,40 @@
 
   .sel{width:100%;height:32px;padding:0 9px;border-radius:7px;background:#0b0b0e;border:1px solid var(--line);outline:none}
   .sel:focus{border-color:rgba(217,249,90,.45)}
-  .btnrow{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+  .btnrow{display:flex;margin-top:7px;flex-wrap:wrap}
+  .btnrow > * + *{margin-left:6px}
   .mini-btn{flex:1;height:28px;min-width:64px;border-radius:6px;border:1px solid var(--line);background:#15151a;color:#c9c9d0;
     font-size:11.5px;cursor:pointer;transition:.15s}
   .mini-btn:hover{background:#1d1d23;border-color:var(--line2);color:#fff}
   .mini-btn.danger:hover{color:#ff9a9a;border-color:rgba(255,120,120,.4)}
 
   /* 模板 */
-  .tpls{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .tpls{display:flex;flex-wrap:wrap;margin-right:-7px}
+  .tpls > *{width:calc(50% - 7px);margin:0 7px 7px 0}
   .tpl{text-align:left;padding:6px;border-radius:9px;cursor:pointer;background:var(--card);border:1px solid var(--line);transition:.15s;color:var(--ink)}
   .tpl:hover{background:var(--card2);border-color:var(--line2)}
   .tpl.is-on{border-color:rgba(217,249,90,.6);background:rgba(217,249,90,.055);box-shadow:0 0 0 1px rgba(217,249,90,.18) inset}
   .th{position:relative;display:block;height:44px;border-radius:5px;overflow:hidden;background:#0b0b0d;border:1px solid rgba(255,255,255,.06);margin-bottom:6px}
   .th .p{position:absolute;background:linear-gradient(140deg,#4b5460,#252a33 45%,#5a4a3c)}
   .th .b{position:absolute;background:#fff}
-  .tpl[data-tpl="bar"] .th .p{inset:0 0 8px 0}
+  .tpl[data-tpl="bar"] .th .p{top:0;right:0;bottom:8px;left:0}
   .tpl[data-tpl="bar"] .th .b{left:0;right:0;bottom:0;height:8px}
-  .tpl[data-tpl="dark"] .th .p{inset:0 0 8px 0}
+  .tpl[data-tpl="dark"] .th .p{top:0;right:0;bottom:8px;left:0}
   .tpl[data-tpl="dark"] .th .b{left:0;right:0;bottom:0;height:8px;background:#0c0c0e}
-  .tpl[data-tpl="center"] .th .p{inset:0}
+  .tpl[data-tpl="center"] .th .p{top:0;right:0;bottom:0;left:0}
   .tpl[data-tpl="center"] .th .b{left:50%;bottom:9px;width:20px;height:3px;margin-left:-10px;background:#fff;border-radius:1px}
-  .tpl[data-tpl="corner"] .th .p{inset:0}
+  .tpl[data-tpl="corner"] .th .p{top:0;right:0;bottom:0;left:0}
   .tpl[data-tpl="corner"] .th .b{left:6px;bottom:9px;width:18px;height:3px;background:#fff;border-radius:1px}
-  .tpl[data-tpl="wordmark"] .th .p{inset:0}
+  .tpl[data-tpl="wordmark"] .th .p{top:0;right:0;bottom:0;left:0}
   .tpl[data-tpl="wordmark"] .th .b{left:50%;bottom:8px;width:30px;height:6px;margin-left:-15px;background:#fff;border-radius:1px}
   .tpl[data-tpl="film"] .th{background:#f3f0e9}
-  .tpl[data-tpl="film"] .th .p{inset:4px 4px 12px 4px}
+  .tpl[data-tpl="film"] .th .p{top:4px;right:4px;bottom:12px;left:4px}
   .tname{display:block;font-size:12px;font-weight:600}
   .tdesc{display:block;font-size:10px;color:var(--muted);margin-top:1px}
 
   /* 表单 */
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .grid2{display:flex;flex-wrap:wrap;margin-right:-7px}
+  .grid2 > *{width:calc(50% - 7px);margin:0 7px 7px 0}
   label{display:block}
   label span,.lab{display:block;font-size:10.5px;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
   input[type=text],input[type=password]{width:100%;height:32px;padding:0 9px;border-radius:7px;background:#0b0b0e;border:1px solid var(--line);outline:none;transition:.15s}
@@ -113,7 +120,8 @@
   input::placeholder{color:#54545c}
   .full{display:block;margin-top:7px}
 
-  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .row > * + *{margin-left:10px}
   .row>span{font-size:12px;color:#b6b6bd}
   .seg{display:flex;background:#0b0b0e;border:1px solid var(--line);border-radius:7px;padding:2px}
   .seg button{background:none;border:none;padding:3px 10px;border-radius:5px;font-size:11.5px;color:var(--muted);cursor:pointer}
@@ -121,7 +129,7 @@
 
   .switch{position:relative;display:inline-block;width:34px;height:19px;flex:none}
   .switch input{opacity:0;width:0;height:0;position:absolute}
-  .switch span{position:absolute;inset:0;background:#222228;border:1px solid var(--line2);border-radius:20px;transition:.18s;display:block}
+  .switch span{position:absolute;top:0;right:0;bottom:0;left:0;background:#222228;border:1px solid var(--line2);border-radius:20px;transition:.18s;display:block}
   .switch span::after{content:"";position:absolute;left:2px;top:2px;width:13px;height:13px;border-radius:50%;background:#8a8a92;transition:.18s}
   .switch input:checked+span{background:rgba(217,249,90,.18);border-color:rgba(217,249,90,.55)}
   .switch input:checked+span::after{transform:translateX(15px);background:var(--accent)}
@@ -136,7 +144,8 @@
   input[type=range]::-moz-range-track{height:3px;border-radius:3px;background:#26262c}
   input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;background:var(--accent)}
 
-  .logo-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .logo-chips{display:flex;margin-top:8px;flex-wrap:wrap}
+  .logo-chips > * + *{margin-left:6px}
   .chip{height:27px;padding:0 12px;border-radius:14px;border:1px solid var(--line);background:#121216;
     color:#b9b9c1;font-size:11.5px;cursor:pointer;transition:.15s}
   .chip:hover{border-color:var(--line2);color:#fff;background:#17171c}
@@ -157,15 +166,23 @@
   body.clean .stage-foot{display:none}
 
   @media (max-width:900px){
-    .app{grid-template-columns:1fr;height:auto}
-    .stage{min-height:44vh;padding:18px;order:1}
+    .app{flex-direction:column;height:auto}
+    .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box}
     #preview{max-height:40vh}
-    .panel{border-left:none;border-top:1px solid var(--line);order:2;padding:16px 14px 40px}
+    .panel{border-left:none;border-top:1px solid var(--line);order:2;padding:16px 14px 40px;flex:1 1 auto;width:auto}
     .stage-foot{position:static;margin-top:14px;justify-content:center}
   }
 </style>
 </head>
 <body>
+<noscript>
+  <div style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:9999;background:#0b0b0c;color:#d9f95a;
+              font:16px/1.7 'Microsoft YaHei',sans-serif;padding:40px 24px;text-align:center">
+    <p style="font-size:20px;font-weight:700;margin:0 0 10px">这个查看器禁用了 JavaScript</p>
+    <p style="margin:0;color:#bbb">页面能显示，但所有按钮都不会工作。<br>
+       请用 Chrome、夸克或 QQ 浏览器打开本文件。</p>
+  </div>
+</noscript>
 
 <header class="top">
   <div class="logo"><span class="dot"></span>EXIF 水印 <em>本地 · 离线</em></div>
@@ -286,6 +303,14 @@
     <section>
       <h3 class="sec">导出</h3>
       <div class="row">
+        <span>尺寸</span>
+        <select id="exportSize" class="sel" style="width:118px">
+          <option value="0">原图</option>
+          <option value="3000">长边 3000</option>
+          <option value="2048">长边 2048</option>
+        </select>
+      </div>
+      <div class="row">
         <span>格式</span>
         <select id="format" class="sel" style="width:110px">
           <option value="jpeg">JPEG</option>
@@ -324,7 +349,7 @@
   var DEF_UI = {
     bar: 0.065, border: 0.006, logoScale: 1, font: 1,
     showDate: true, showLoc: false, ink: 'auto',
-    format: 'jpeg', quality: 0.92
+    format: 'jpeg', quality: 0.92, exportMax: 0
   };
 
   var state = {
@@ -354,6 +379,11 @@
     clearTimeout(toast._t);
     toast._t = setTimeout(function () { el.toast.classList.remove('show'); }, 2400);
   }
+
+  window.onerror = function (msg, src, line) {
+    try { toast('脚本错误：' + msg + '（第 ' + line + ' 行）'); } catch (e) {}
+    return false;
+  };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -561,6 +591,9 @@
     if (gpsPtr) readIFD(start + gpsPtr, mg);
 
     var out = {};
+    var ori = raw(m0, 0x0112);
+    if (ori && ori >= 2 && ori <= 8) out.orientation = ori;
+
     var make = raw(m0, 0x010F), model = raw(m0, 0x0110);
     if (make) out.make = String(make).replace(/\0/g, '').trim();
     if (model) out.model = String(model).replace(/\0/g, '').trim();
@@ -688,6 +721,21 @@
   }
 
   function logoW(h) { return h * logoAspect(); }
+
+  function readArrayBuffer(blob) {
+    return new Promise(function (resolve, reject) {
+      if (blob && typeof blob.arrayBuffer === 'function') {
+        blob.arrayBuffer().then(resolve, reject);
+        return;
+      }
+      try {
+        var fr = new FileReader();
+        fr.onload = function () { resolve(fr.result); };
+        fr.onerror = function () { reject(fr.error || new Error('read failed')); };
+        fr.readAsArrayBuffer(blob);
+      } catch (e) { reject(e); }
+    });
+  }
 
   function loadImage(src) {
     return new Promise(function (resolve, reject) {
@@ -1183,9 +1231,10 @@
       toast('只支持 JPG / PNG / WebP');
       return;
     }
-    blob.arrayBuffer().then(function (buf) {
+    readArrayBuffer(blob).then(function (buf) {
       var exif = parseExif(buf);
       return createBitmap(blob).then(function (bmp) {
+        bmp = normalizeOrientation(bmp, exif.orientation);
         state.bitmap = bmp;
         state.file = blob;
         state.fileName = name || 'image';
@@ -1208,11 +1257,31 @@
 
   function createBitmap(blob) {
     if (window.createImageBitmap) {
-      return createImageBitmap(blob, { imageOrientation: 'from-image' }).catch(function () {
+      return createImageBitmap(blob, { imageOrientation: 'none' }).catch(function () {
         return createBitmapViaImg(blob);
       });
     }
     return createBitmapViaImg(blob);
+  }
+
+  // 老内核不会自动按 EXIF 转正，这里统一手动处理
+  function normalizeOrientation(img, o) {
+    if (!o || o < 2 || o > 8) return img;
+    var w = img.width, h = img.height;
+    var swap = o >= 5;
+    var c = makeCanvas(swap ? h : w, swap ? w : h);
+    var x = c.getContext('2d');
+    switch (o) {
+      case 2: x.transform(-1, 0, 0, 1, w, 0); break;
+      case 3: x.transform(-1, 0, 0, -1, w, h); break;
+      case 4: x.transform(1, 0, 0, -1, 0, h); break;
+      case 5: x.transform(0, 1, 1, 0, 0, 0); break;
+      case 6: x.transform(0, 1, -1, 0, h, 0); break;
+      case 7: x.transform(0, -1, -1, 0, h, w); break;
+      case 8: x.transform(0, -1, 1, 0, 0, w); break;
+    }
+    x.drawImage(img, 0, 0);
+    return c;
   }
 
   function createBitmapViaImg(blob) {
@@ -1278,6 +1347,7 @@
     setRange('#font', state.ui.font * 100, '#fontOut', '%', 0);
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
+    $('#exportSize').value = String(state.ui.exportMax || 0);
     $('#format').value = state.ui.format;
     $('#quality').disabled = state.ui.format === 'png';
 
@@ -1373,7 +1443,7 @@
 
   $('#reloadBtn').addEventListener('click', function () {
     if (!state.file) { toast('先选一张图'); return; }
-    state.file.arrayBuffer().then(function (buf) {
+    readArrayBuffer(state.file).then(function (buf) {
       applyExif(parseExif(buf));
       scheduleRender();
       autosave();
@@ -1404,6 +1474,10 @@
   $('#quality').addEventListener('input', function (e) {
     state.ui.quality = parseFloat(e.target.value) / 100;
     $('#qOut').textContent = e.target.value + '%';
+    autosave();
+  });
+  $('#exportSize').addEventListener('change', function (e) {
+    state.ui.exportMax = parseInt(e.target.value, 10) || 0;
     autosave();
   });
   $('#format').addEventListener('change', function (e) {
@@ -1482,59 +1556,69 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
   }
 
-  async function download() {
+  function download() {
     if (!state.bitmap) return;
     var isPng = state.ui.format === 'png';
     var type = isPng ? 'image/png' : 'image/jpeg';
     var name = (state.fileName || 'image').replace(/\.[^.]+$/, '') + '-wm.' + (isPng ? 'png' : 'jpg');
 
-    // 先弹「另存为」，自己选位置；取消就什么都不做
-    var handle = null;
-    if (window.showSaveFilePicker) {
-      try {
-        handle = await window.showSaveFilePicker({
-          suggestedName: name,
-          startIn: 'desktop',
-          types: isPng
-            ? [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
-            : [{ description: 'JPEG 图片', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }]
-        });
-      } catch (e) {
-        if (e && e.name === 'AbortError') return;
-        handle = null;
-      }
-    }
-
-    var btn = el.exportBtn2;
-    var old = btn.textContent;
-    btn.textContent = '导出中…';
-    btn.disabled = true;
-    try {
-      await new Promise(function (r) { setTimeout(r, 30); });
-      var c = makeCanvas(1, 1);
-      renderInto(c, Math.min(state.bitmap.width, 8000));
-      var blob = await new Promise(function (resolve) {
-        if (c.toBlob) c.toBlob(resolve, type, isPng ? undefined : state.ui.quality);
-        else resolve(null);
+    function pickHandle() {
+      if (!window.showSaveFilePicker) return Promise.resolve(null);
+      return window.showSaveFilePicker({
+        suggestedName: name,
+        startIn: 'desktop',
+        types: isPng
+          ? [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
+          : [{ description: 'JPEG 图片', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }]
+      }).catch(function (e) {
+        if (e && e.name === 'AbortError') return 'cancel';
+        return null;
       });
-      if (!blob) { toast('导出失败，试试换 PNG'); return; }
-
-      if (handle) {
-        var w = await handle.createWritable();
-        await w.write(blob);
-        await w.close();
-        toast('已保存：' + handle.name);
-      } else {
-        downloadBlob(blob, name);
-        toast('已保存：' + name);
-      }
-    } catch (e) {
-      console.error(e);
-      toast('保存失败：' + (e.message || e.name));
-    } finally {
-      btn.textContent = old;
-      btn.disabled = false;
     }
+
+    pickHandle().then(function (handle) {
+      if (handle === 'cancel') return;
+      var btn = el.exportBtn2;
+      var old = btn.textContent;
+      btn.textContent = '导出中…';
+      btn.disabled = true;
+      var restore = function () { btn.textContent = old; btn.disabled = false; };
+
+      return new Promise(function (r) { setTimeout(r, 30); })
+        .then(function () {
+          var c = makeCanvas(1, 1);
+          var sw = state.bitmap.width, sh = state.bitmap.height;
+          var longEdge = Math.max(sw, sh);
+          var maxEdge = state.ui.exportMax || 0;
+          var targetW = sw;
+          if (maxEdge && longEdge > maxEdge) {
+            targetW = Math.max(1, Math.round(sw * maxEdge / longEdge));
+          }
+          renderInto(c, Math.min(targetW, 8000));
+          return new Promise(function (resolve) {
+            if (c.toBlob) c.toBlob(resolve, type, isPng ? undefined : state.ui.quality);
+            else resolve(null);
+          }).then(function (blob) { return { blob: blob, canvas: c }; });
+        })
+        .then(function (res) {
+          var blob = res.blob;
+          if (!blob) { toast('导出失败，试试换 PNG'); return; }
+          if (handle) {
+            return handle.createWritable().then(function (w) {
+              return w.write(blob).then(function () { return w.close(); });
+            }).then(function () {
+              toast('已保存：' + handle.name);
+            });
+          }
+          downloadBlob(blob, name);
+          toast('已保存：' + name);
+        })
+        .catch(function (e) {
+          console.error(e);
+          toast('保存失败：' + (e.message || e.name));
+        })
+        .then(restore, restore);
+    });
   }
   el.exportBtn.addEventListener('click', download);
   el.exportBtn2.addEventListener('click', download);
