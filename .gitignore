@@ -1,0 +1,16 @@
+# 本地参考素材（第三方摄影作品，不随仓库发布）
+reference/
+
+# 导出与临时产物
+导出/
+*.zip
+*.7z
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
