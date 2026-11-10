@@ -151,3 +151,17 @@ P9徕卡水印工具/
 `index.html` 里搜 `function drawBar` / `drawCenter` / `drawCorner` / `drawWordmark` / `drawFilm`，
 每个模板的尺寸都是 `图宽 × 系数`，改一个数字就能调整比例。
 配色、字号、间距都在对应函数顶部几行。
+
+## 自测脚本
+
+`开发文件/tests/` 里有一套基于 CDP 的自动化测试（Node 22+，用本机 Edge 无头模式）：
+
+```powershell
+# 先起一个带调试端口的无头 Edge，然后
+node 开发文件/tests/cdp_test.mjs
+```
+
+覆盖：画布渲染、EXIF 解析、六套模板、六种字体、时间精度、PNG/JPEG 状态、
+滑杆与开关、图标切换、文字颜色、预设保存与重载恢复、导出尺寸与编码。
+
+> 这是桌面 Chromium 环境的测试；真机（P9 / 安卓 WebView）仍需人工验收。
