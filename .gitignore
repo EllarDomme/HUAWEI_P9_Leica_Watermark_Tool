@@ -26,3 +26,4 @@ android/build/
 android/assets/index.html
 android/*.apk
 android/debug.keystore
+android/*.idsig
