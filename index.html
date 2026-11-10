@@ -1881,6 +1881,25 @@
     });
   }
 
+  function blobToPng(blob) {
+    return new Promise(function (resolve) {
+      try {
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var c = document.createElement('canvas');
+            c.width = img.naturalWidth;
+            c.height = img.naturalHeight;
+            c.getContext('2d').drawImage(img, 0, 0);
+            c.toBlob(function (b) { resolve(b); }, 'image/png');
+          } catch (e) { resolve(null); }
+        };
+        img.onerror = function () { resolve(null); };
+        img.src = URL.createObjectURL(blob);
+      } catch (e) { resolve(null); }
+    });
+  }
+
   function showSavePanel(blob, name, hint) {
     var url;
     try { url = URL.createObjectURL(blob); } catch (e) { return toast('生成图片失败'); }
@@ -1890,47 +1909,64 @@
     var box = document.createElement('div');
     box.className = 'box';
     var tip = document.createElement('p');
-    tip.textContent = hint || '点「打开图片」，在新页面里长按或点浏览器菜单保存';
-    if (isAndroid && blob.size > 12 * 1024 * 1024) {
-      tip.textContent += '（图较大，建议改用 JPEG 92%）';
-    }
+    tip.textContent = hint || '长按图片保存；或点下面的按钮';
     var img = document.createElement('img');
     img.src = url;
-
     var acts = document.createElement('div');
     acts.className = 'acts';
-    var primary = null;
 
-    function openImage() {
-      try {
-        var w = window.open(url, '_blank');
-        if (!w) location.href = url;
-      } catch (e) { toast('长按图片保存试试', 4000); }
+    var canShare = false;
+    var shareFile = null;
+    try {
+      if (window.File) {
+        shareFile = new File([blob], name, { type: blob.type || 'image/jpeg' });
+        canShare = !!(navigator.canShare && navigator.canShare({ files: [shareFile] }));
+      }
+    } catch (e) {}
+
+    function addBtn(text, cls, fn) {
+      var b = document.createElement('button');
+      b.className = 'btn ' + cls;
+      b.textContent = text;
+      b.onclick = fn;
+      acts.appendChild(b);
     }
 
-    if (isAndroid) {
-      primary = document.createElement('button');
-      primary.className = 'btn primary';
-      primary.textContent = '打开图片';
-      primary.onclick = openImage;
+    if (canShare) {
+      addBtn('保存到相册', 'primary', function () {
+        navigator.share({ files: [shareFile] }).catch(function () {
+          toast('分享没成功，试试长按图片', 4000);
+        });
+      });
     } else {
-      primary = document.createElement('a');
-      primary.className = 'btn primary';
-      primary.href = url;
-      primary.download = name;
-      primary.textContent = '下载';
+      addBtn('打开图片', 'primary', function () {
+        try {
+          var w = window.open(url, '_blank');
+          if (!w) location.href = url;
+        } catch (e) { toast('长按图片保存试试', 4000); }
+      });
     }
 
-    var close = document.createElement('button');
-    close.className = 'btn ghost';
-    close.textContent = '关闭';
-    close.onclick = function () {
+    // 复制图片：不依赖下载，粘贴到微信/QQ 再保存
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      addBtn('复制图片', 'ghost', function () {
+        var p = (blob.type === 'image/png') ? Promise.resolve(blob) : blobToPng(blob);
+        p.then(function (png) {
+          if (!png) throw new Error('转换失败');
+          return navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+        }).then(function () {
+          toast('已复制，去微信/QQ 粘贴后保存', 6000);
+        }).catch(function (e) {
+          toast('复制失败：' + (e.message || e), 5000);
+        });
+      });
+    }
+
+    addBtn('关闭', 'ghost', function () {
       try { URL.revokeObjectURL(url); } catch (e) {}
       wrap.parentNode && wrap.parentNode.removeChild(wrap);
-    };
+    });
 
-    acts.appendChild(primary);
-    acts.appendChild(close);
     box.appendChild(tip); box.appendChild(img); box.appendChild(acts);
     wrap.appendChild(box);
     document.body.appendChild(wrap);
