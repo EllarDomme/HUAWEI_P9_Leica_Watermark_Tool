@@ -185,3 +185,21 @@ Stop-Process -Id (Get-Content "开发文件\.proxy.pid")
 ```
 
 代理只是把 `github.com:443` 的流量转发到 GitHub 的真实 IP，TLS 仍是端到端加密。
+
+## Android APK
+
+`android/` 是一个极简 WebView 壳，把 `index.html` 打进 APK，导出的图由原生代码直接写入相册
+（`Pictures/P9Watermark`），完全绕开浏览器对 `file://` 页面的保存限制。
+
+- 包名 `com.ellardomme.p9watermark`，最低 Android 5.0
+- 返回键：先关浮层，主界面双击退出
+- 体积约 410KB
+
+重新打包（需要 JDK 与 Android SDK，脚本里写死了本机路径，换机器改 `build.ps1` 顶部的 `$sdk`）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File android\build.ps1
+```
+
+脚本会自动把根目录的 `index.html` 复制进 `assets/`，然后依次执行
+aapt2 → javac → d8 → 加 dex → zipalign → apksigner。
