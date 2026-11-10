@@ -145,9 +145,11 @@
   .savepanel .box{background:#121214;border:1px solid var(--line2);border-radius:14px;padding:14px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column}
   .savepanel p{margin:0 0 10px;font-size:12px;color:#b9b9c1;text-align:center;line-height:1.6}
   .savepanel img{max-width:88vw;max-height:64vh;object-fit:contain;border-radius:8px;background:#000}
-  .savepanel .acts{display:flex;margin-top:12px}
-  .savepanel .acts .btn{flex:1}
-  .savepanel .acts .btn + .btn{margin-left:8px}
+  .savepanel .acts{display:flex;margin-top:14px}
+  .savepanel .acts .btn{flex:1;height:44px;border-radius:10px;font-size:14px;font-weight:600}
+  .savepanel .acts .btn + .btn{margin-left:10px}
+  .savepanel .btn.primary{background:#f3f0ea;color:#141414;border-color:transparent}
+  .savepanel .btn.ghost{background:#1b1b20;color:#d8d8de}
   .qnote{font-size:11px;color:#7e7e88;line-height:1.5;margin-top:2px}
   .sld .sld-top span{font-size:12px;color:#b6b6bd}
   .sld output{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -216,8 +218,8 @@
     .logo em{display:none}
     .top-actions .btn{height:32px;padding:0 12px}
     .app{flex-direction:column;height:auto}
-    .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box}
-    #preview{max-height:40vh;box-shadow:none}
+    .stage{min-height:44vh;padding:18px;order:1;width:100%;box-sizing:border-box;display:block;text-align:center}
+    #preview{max-height:40vh;box-shadow:none;margin:0 auto}
     .panel{border-left:none;border-top:1px solid var(--line);order:2;padding:16px 14px 40px;flex:1 1 auto;width:auto}
     .stage-foot{position:static;margin-top:14px;justify-content:center}
   }
@@ -1892,19 +1894,24 @@
     img.src = url;
     var acts = document.createElement('div');
     acts.className = 'acts';
-    var a = document.createElement('a');
-    a.className = 'btn';
-    a.href = url;
-    a.download = name;
-    a.textContent = '下载';
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    var a = null;
+    if (!isAndroid) {
+      a = document.createElement('a');
+      a.className = 'btn primary';
+      a.href = url;
+      a.download = name;
+      a.textContent = '下载';
+    }
     var close = document.createElement('button');
-    close.className = 'btn';
-    close.textContent = '关闭';
+    close.className = 'btn' + (a ? ' ghost' : ' primary');
+    close.textContent = a ? '关闭' : '知道了';
     close.onclick = function () {
       try { URL.revokeObjectURL(url); } catch (e) {}
       wrap.parentNode && wrap.parentNode.removeChild(wrap);
     };
-    acts.appendChild(a); acts.appendChild(close);
+    if (a) acts.appendChild(a);
+    acts.appendChild(close);
     box.appendChild(tip); box.appendChild(img); box.appendChild(acts);
     wrap.appendChild(box);
     document.body.appendChild(wrap);
