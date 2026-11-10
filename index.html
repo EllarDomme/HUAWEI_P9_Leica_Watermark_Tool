@@ -263,7 +263,7 @@
     <section>
       <h3 class="sec">拍摄时间</h3>
       <div class="row"><span>显示拍摄时间</span><label class="switch"><input type="checkbox" id="dateSw" checked><span></span></label></div>
-      <input type="text" data-f="date" placeholder="2024.05.01">
+      <input type="text" data-f="date" placeholder="2024-05-01">
     </section>
 
     <section>
@@ -653,7 +653,7 @@
 
   function fmtDate(s) {
     var m = /^(\d{4})[:\-\.](\d{2})[:\-\.](\d{2})/.exec(String(s));
-    return m ? m[1] + '.' + m[2] + '.' + m[3] : String(s);
+    return m ? m[1] + '-' + m[2] + '-' + m[3] : String(s);
   }
 
   // 相机/手机写进 EXIF 的机型代号，映射成好认的名字
