@@ -143,6 +143,7 @@
   .sld.is-off{opacity:.42}
   .savepanel{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:14px}
   .savepanel .box{background:#121214;border:1px solid var(--line2);border-radius:14px;padding:14px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column}
+  .savepanel .sub{display:block;margin-top:7px;font-size:11px;color:#8f8f98;font-weight:400}
   .savepanel p{margin:0 0 10px;font-size:12px;color:#b9b9c1;text-align:center;line-height:1.6}
   .savepanel img{max-width:88vw;max-height:64vh;object-fit:contain;border-radius:8px;background:#000}
   .savepanel .acts{display:flex;margin-top:14px}
@@ -1910,6 +1911,13 @@
     box.className = 'box';
     var tip = document.createElement('p');
     tip.textContent = hint || '长按图片保存；或点下面的按钮';
+    if (isAndroid && location.protocol === 'file:') {
+      var sub = document.createElement('span');
+      sub.className = 'sub';
+      sub.textContent = '若保存失败：电脑运行「开发文件\\serve.cmd」，手机改用 http 地址打开本页';
+      tip.appendChild(document.createElement('br'));
+      tip.appendChild(sub);
+    }
     var img = document.createElement('img');
     img.src = url;
     var acts = document.createElement('div');
@@ -1978,7 +1986,7 @@
     a.href = url;
     a.download = name;
     a.rel = 'noopener';
-    a.style.display = 'none';
+    a.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
     document.body.appendChild(a);
     try { a.click(); } catch (e) {}
     // 立刻移除或立刻回收 URL，会让部分浏览器拿到 0 字节文件
