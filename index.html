@@ -291,6 +291,10 @@
         <div class="sld-top"><span>整体字号</span><output id="fontOut">100%</output></div>
         <input type="range" id="font" min="80" max="130" step="5" value="100">
       </div>
+      <div class="sld" data-show="center">
+        <div class="sld-top"><span>垂直位置</span><output id="posOut">75</output></div>
+        <input type="range" id="pos" min="0" max="100" step="5" value="75">
+      </div>
       <div class="row">
         <span>文字颜色</span>
         <div class="seg" id="inkSeg">
@@ -350,7 +354,7 @@
   var DEF_UI = {
     bar: 0.065, border: 0.006, logoScale: 1, font: 1,
     showDate: true, showLoc: false, ink: 'auto',
-    format: 'jpeg', quality: 0.92, exportMax: 0
+    format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75
   };
 
   var state = {
@@ -833,7 +837,8 @@
       total += (it.h || it.size * 1.25) + (i < items.length - 1 ? it.gap : 0);
     });
 
-    var bottom = g.ih - g.iw * 0.0370;
+    var pos = (typeof ui.pos === 'number') ? ui.pos : 75;
+    var bottom = g.ih - g.iw * (0.037 - (pos - 50) / 50 * 0.025);
     var y = bottom - total;
 
     items.forEach(function (it, i) {
@@ -1349,6 +1354,7 @@
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
     $('#exportSize').value = String(state.ui.exportMax || 0);
+    setRange('#pos', (state.ui.pos == null ? 75 : state.ui.pos), '#posOut', '', 0);
     $('#format').value = state.ui.format;
     $('#quality').disabled = state.ui.format === 'png';
 
@@ -1465,6 +1471,11 @@
   $('#logo').addEventListener('input', function (e) {
     state.ui.logoScale = parseFloat(e.target.value) / 100;
     $('#logoOut').textContent = e.target.value + '%';
+    scheduleRender(); autosave();
+  });
+  $('#pos').addEventListener('input', function (e) {
+    state.ui.pos = parseInt(e.target.value, 10);
+    $('#posOut').textContent = e.target.value;
     scheduleRender(); autosave();
   });
   $('#font').addEventListener('input', function (e) {
