@@ -1210,11 +1210,37 @@
   var rafId = 0;
   var dragging = false;
 
-  // 预览按“实际需要”的像素渲染：手机 900 / 桌面 1600，拖滑杆时再降到 720
+  // 自适应画质：连续测渲染耗时，慢就自动降预览分辨率，快再逐步升回来
+  var qualityStep = 0;          // 0=最佳 1=中 2=省电
+  var perfEMA = 0;              // 渲染耗时指数平均（ms）
+  var perfFrames = 0;
+  var cooldown = 0;
+  var upgrades = 0;
+  var STEP_FACTOR = [1, 0.75, 0.55];
+
   function previewWidth() {
-    var cap = window.innerWidth <= 900 ? 800 : 1600;
+    var base = window.innerWidth <= 900 ? 800 : 1600;
+    var cap = Math.round(base * STEP_FACTOR[qualityStep]);
     if (dragging) cap = Math.min(cap, 640);
     return Math.min(state.bitmap ? state.bitmap.width : cap, cap);
+  }
+
+  function tuneQuality(cost) {
+    if (dragging) return;
+    perfEMA = perfEMA ? perfEMA * 0.8 + cost * 0.2 : cost;
+    perfFrames++;
+    if (cooldown > 0) { cooldown--; return; }
+    if (perfFrames < 6) return;
+    if (perfEMA > 45 && qualityStep < 2) {
+      qualityStep++;
+      perfFrames = 0; perfEMA = 0; cooldown = 45;
+      scheduleRender();
+    } else if (perfEMA < 14 && qualityStep > 0 && perfFrames > 30 && upgrades < 2) {
+      upgrades++;
+      qualityStep--;
+      perfFrames = 0; perfEMA = 0; cooldown = 45;
+      scheduleRender();
+    }
   }
 
   function scheduleRender() {
@@ -1222,8 +1248,11 @@
     if (rafId) return;
     rafId = requestAnimationFrame(function () {
       rafId = 0;
+      var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
       try { renderInto(el.preview, previewWidth()); }
-      catch (e) { console.error(e); toast('渲染出错：' + e.message); }
+      catch (e) { console.error(e); toast('渲染出错：' + e.message); return; }
+      var t1 = (window.performance && performance.now) ? performance.now() : Date.now();
+      tuneQuality(t1 - t0);
     });
   }
 
