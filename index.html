@@ -1897,14 +1897,6 @@
     var img = document.createElement('img');
     img.src = url;
 
-    // 安卓上换成 data: 地址，长按“保存图片”的兼容性更好（blob: 有些浏览器不给存）
-    if (isAndroid && window.FileReader && blob.size <= 12 * 1024 * 1024) {
-      try {
-        var fr = new FileReader();
-        fr.onload = function () { img.src = String(fr.result); };
-        fr.readAsDataURL(blob);
-      } catch (e) {}
-    }
 
     var acts = document.createElement('div');
     acts.className = 'acts';
@@ -1919,9 +1911,14 @@
           primary.className = 'btn primary';
           primary.textContent = '保存到相册';
           primary.onclick = function () {
+            var fallback = function () {
+              try { window.open(url, '_blank'); }
+              catch (e) { toast('长按图片保存，或去文件管理里找', 4000); }
+            };
             try {
-              navigator.share({ files: [file] }).catch(function () { toast('分享被取消，可长按图片保存', 4000); });
-            } catch (e) { toast('这个浏览器不支持分享，请长按图片保存', 4000); }
+              var pr = navigator.share({ files: [file] });
+              if (pr && pr.catch) pr.catch(fallback);
+            } catch (e) { fallback(); }
           };
         }
       }
@@ -1933,6 +1930,20 @@
       primary.href = url;
       primary.download = name;
       primary.textContent = '下载';
+    }
+
+    if (!primary) {
+      // 没有分享能力：在新窗口打开图片，浏览器看图页通常自带“保存图片”
+      primary = document.createElement('button');
+      primary.className = 'btn primary';
+      primary.textContent = '打开图片';
+      primary.onclick = function () {
+        var w = null;
+        try { w = window.open(url, '_blank'); } catch (e) {}
+        if (!w) {
+          try { location.href = url; } catch (e) { toast('请长按图片保存', 4000); }
+        }
+      };
     }
 
     var close = document.createElement('button');
