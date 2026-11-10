@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title EXIF Watermark - local server
 
 rem --- 优先用 py 启动器（Windows 自带，指向真正的 Python） ---

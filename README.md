@@ -3,14 +3,14 @@
 单文件网页工具。双击 `index.html` 就能用，不上传、不联网、不需要安装任何东西。
 照片、图标、预设全部留在本机。
 
-![界面](preview/ui.jpg)
+![界面](开发文件/preview/ui.jpg)
 
 ---
 
 ## 快速开始
 
 - **直接打开**：双击 `index.html`（Edge / Chrome 均可，`file://` 下就能跑）
-- **手机用**：双击 `serve.cmd`，同一 Wi-Fi 下用手机访问 `http://电脑IP:8765`
+- **手机用**：双击 `开发文件/serve.cmd`，同一 Wi-Fi 下用手机访问 `http://电脑IP:8765`
 - 把照片拖进左侧，或 `Ctrl+V` 粘贴截图；`Ctrl+O` 打开，`Ctrl+S` 导出
 
 ---
@@ -26,12 +26,12 @@
 | **大字** | LUMO / OPPO 品牌大字 | 作品封面、品牌感 |
 | **胶片** | 画框留边，底部排字 | 日系、胶片模拟 |
 
-![白条](preview/bar.jpg)
-![黑条](preview/dark.jpg)
-![居中](preview/center.jpg)
-![左下](preview/corner.jpg)
-![大字](preview/wordmark.jpg)
-![胶片](preview/film.jpg)
+![白条](开发文件/preview/bar.jpg)
+![黑条](开发文件/preview/dark.jpg)
+![居中](开发文件/preview/center.jpg)
+![左下](开发文件/preview/corner.jpg)
+![大字](开发文件/preview/wordmark.jpg)
+![胶片](开发文件/preview/film.jpg)
 
 ---
 
@@ -124,23 +124,25 @@
 - “Leica” 及相关标识是 **Leica Camera AG** 的注册商标，本项目与该公司**无任何关联**，也未获其授权
 - 请勿将本工具用于商业用途、批量生成冒充官方样张的图片，或任何可能误导他人的场景
 - 如需公开分发修改版，请自行评估商标使用风险，或把图标替换为自己的素材（「上传」按钮支持 PNG / SVG）
-- 仓库内不含任何第三方摄影作品；`reference/` 中的参考图仅用于本地对照，未上传
+- 仓库内不含任何第三方摄影作品；`开发文件/reference/` 中的参考图仅用于本地对照，未上传
 
 ---
 
 ## 文件结构
 
 ```
-leica-watermark/
-├─ index.html     # 全部功能：EXIF 解析 + 6 套模板 + 预设
-├─ serve.cmd      # 可选：起本地服务，方便手机访问
-├─ demo.jpg       # 带 EXIF 的示例照片（Canon EOS R5）
-├─ preview/       # 模板截图（JPEG）
-├─ LICENSE        # MIT
-└─ .gitignore     # 排除 reference/ 等本地素材
+P9徕卡水印工具/
+├─ index.html          # 双击这个就能用：EXIF 解析 + 6 套模板 + 预设
+├─ LICENSE             # MIT
+├─ README.md           # 本说明
+└─ 开发文件/            # 用户不需要碰的部分
+   ├─ serve.cmd        # 可选：起本地服务，方便手机访问
+   ├─ demo.jpg         # 带 EXIF 的示例照片
+   ├─ preview/         # 模板截图
+   └─ reference/       # 参考素材（不发布）
 ```
 
-> `reference/`（参考网图与徕卡标原图）**不随仓库发布**，已在 `.gitignore` 中排除。
+> `开发文件/reference/`（参考网图与徕卡标原图）**不随仓库发布**，已在 `.gitignore` 中排除。
 
 ## 想改版式
 
