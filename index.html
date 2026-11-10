@@ -804,8 +804,8 @@
     var pSizes = tokens.map(function (t) { return measureAt(ctx, t, pS, 700); });
     var pW = pSizes.reduce(function (a, b) { return a + b; }, 0) + paramGap * Math.max(0, tokens.length - 1);
     var lw = logoW(pH);
-    var gapIcon = g.iw * 0.032;
-    var gapParam = g.iw * 0.032;
+    var gapIcon = g.iw * 0.016;
+    var gapParam = g.iw * 0.016;
     var dividerW = Math.max(1.5, g.iw * 0.0012);
     var showDivider = !!(lw && tokens.length);
     var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (tokens.length ? pW : 0);
@@ -817,7 +817,7 @@
       if (showDivider) {
         var divX = gx + gapIcon;
         ctx.fillStyle = line;
-        ctx.fillRect(Math.round(divX), Math.round(line1Y - pH * 0.35), Math.round(dividerW), Math.round(pH * 0.7));
+        ctx.fillRect(Math.round(divX), Math.round(line1Y - pH * 0.475), Math.round(dividerW), Math.round(pH * 0.95));
         gx = divX + dividerW + gapParam;
       }
     }
