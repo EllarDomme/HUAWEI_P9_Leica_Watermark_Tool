@@ -165,3 +165,23 @@ node 开发文件/tests/cdp_test.mjs
 滑杆与开关、图标切换、文字颜色、预设保存与重载恢复、导出尺寸与编码。
 
 > 这是桌面 Chromium 环境的测试；真机（P9 / 安卓 WebView）仍需人工验收。
+
+## 推送到 GitHub
+
+本机 hosts 把 github.com 指到了 127.0.0.1，直接 push 会失败。用自带的小代理绕过：
+
+```powershell
+cd "E:\DeskTop\P9徕卡水印工具"
+
+# 1. 起代理（后台）
+Start-Process node -ArgumentList "开发文件\push_proxy.mjs" -WindowStyle Hidden
+Start-Sleep 2
+
+# 2. 推送
+git -c http.proxy=http://127.0.0.1:8443 push origin main
+
+# 3. 关代理
+Stop-Process -Id (Get-Content "开发文件\.proxy.pid")
+```
+
+代理只是把 `github.com:443` 的流量转发到 GitHub 的真实 IP，TLS 仍是端到端加密。
