@@ -274,12 +274,12 @@
     <section>
       <div class="sec-row"><h3 class="sec">外观</h3><button class="mini" id="resetLook">重置</button></div>
       <div class="sld" data-show="bar,dark">
-        <div class="sld-top"><span>条高</span><output id="barOut">6.5%</output></div>
-        <input type="range" id="bar" min="4" max="14" step="0.5" value="6.5">
+        <div class="sld-top"><span>条高</span><output id="barOut">8.4%</output></div>
+        <input type="range" id="bar" min="4" max="16" step="0.5" value="8.4">
       </div>
       <div class="sld" data-show="bar,dark">
-        <div class="sld-top"><span>外边框</span><output id="borderOut">0.6%</output></div>
-        <input type="range" id="border" min="0" max="2.5" step="0.1" value="0.6">
+        <div class="sld-top"><span>外边框</span><output id="borderOut">1.9%</output></div>
+        <input type="range" id="border" min="0" max="3" step="0.1" value="1.9">
       </div>
       <div class="sld">
         <div class="sld-top"><span>图标大小</span><output id="logoOut">100%</output></div>
@@ -354,7 +354,7 @@
     date: '', signature: ''
   };
   var DEF_UI = {
-    bar: 0.065, border: 0.006, logoScale: 1, font: 1,
+    bar: 0.084, border: 0.019, logoScale: 1, font: 1,
     showDate: true, ink: 'auto',
     format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
   };
@@ -748,9 +748,9 @@
     var f = state.fields, ui = state.ui;
     var darkTpl = g.tpl === 'dark';
     var ink = darkTpl ? '#f2f2f2' : '#141414';
-    var nameInk = darkTpl ? 'rgba(242,242,242,.86)' : '#4a4a4a';
+    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : '#7d7d7d';
     var sub = darkTpl ? 'rgba(242,242,242,.52)' : 'rgba(20,20,20,.48)';
-    var line = darkTpl ? 'rgba(255,255,255,.22)' : 'rgba(20,20,20,.16)';
+    var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
     var cy = g.barTop + g.barH / 2;
     var padL = g.bd + g.iw * 0.035;
@@ -758,15 +758,15 @@
 
     var name = deviceName();
     var date = dateText();
-    var params = paramsLine();
+    var params = paramsLine().replace(/\s+/g, ' ');
     var sig = f.signature || '';
 
-    var nameS = g.barH * 0.30 * ui.font;
+    var nameS = g.barH * 0.26 * ui.font;
     var subS = g.barH * 0.185 * ui.font;
-    var pS = g.barH * 0.285 * ui.font;
+    var pS = g.barH * 0.26 * ui.font;
 
     // 右侧：图标 + 分隔线 + 参数
-    var pH = g.barH * 0.50 * ui.logoScale;
+    var pH = g.barH * 0.45 * ui.logoScale;
     var pW = params ? measureAt(ctx, params, pS, 650) : 0;
     var lw = logoW(pH);
     var gap = g.barH * 0.24;
@@ -778,14 +778,14 @@
       gx += lw + gap * 0.8;
       if (params) {
         ctx.fillStyle = line;
-        ctx.fillRect(Math.round(gx - gap * 0.35), Math.round(cy - g.barH * 0.22), Math.max(1, g.iw * 0.0012), Math.round(g.barH * 0.44));
+        ctx.fillRect(Math.round(gx - gap * 0.35), Math.round(cy - g.barH * 0.17), Math.max(1.5, g.iw * 0.0012), Math.round(g.barH * 0.34));
       }
     }
     if (params) {
       var ps = pS;
       var maxW = padR - gx;
       if (pW > maxW && maxW > 10) ps = Math.max(pS * 0.5, ps * maxW / pW);
-      drawT(ctx, params, gx, cy, { size: ps, weight: 650, color: ink });
+      drawT(ctx, params, gx, cy, { size: ps, weight: 700, color: ink });
     }
 
     // 左侧：设备名 + 日期/署名
@@ -798,7 +798,7 @@
     var l2 = [date, sig].filter(Boolean).join('   ');
     var nameY = l2 ? cy - g.barH * 0.17 : cy;
     var l2Y = cy + g.barH * 0.20;
-    if (name) drawT(ctx, name, padL, nameY, { size: ns, weight: 500, color: nameInk });
+    if (name) drawT(ctx, name, padL, nameY, { size: ns, weight: 500, color: nameInk, spacing: ns * 0.03 });
     if (l2) drawT(ctx, l2, padL, l2Y, { size: subS, weight: 400, color: sub });
   }
 
