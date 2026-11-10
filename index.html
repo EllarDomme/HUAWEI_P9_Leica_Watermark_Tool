@@ -656,6 +656,19 @@
     return m ? m[1] + '.' + m[2] + '.' + m[3] : String(s);
   }
 
+  // 相机/手机写进 EXIF 的机型代号，映射成好认的名字
+  var MODEL_ALIAS = {
+    'EVA-AL00': 'P9', 'EVA-AL10': 'P9', 'EVA-L09': 'P9',
+    'EVA-L19': 'P9', 'EVA-L29': 'P9', 'EVA-TL00': 'P9',
+    'VIE-L09': 'P9 Plus', 'VIE-AL10': 'P9 Plus', 'VIE-L29': 'P9 Plus'
+  };
+
+  function aliasModel(m) {
+    if (!m) return m;
+    var key = String(m).toUpperCase().replace(/\s+/g, '');
+    return MODEL_ALIAS[key] || m;
+  }
+
   function stripBrand(model, brand) {
     if (!model) return '';
     var m = String(model).replace(/\s+/g, ' ').trim();
@@ -1343,7 +1356,7 @@
     var f = state.fields;
     // 换图时先清空，避免上一张的值残留；没有的字段就留空让用户手填
     f.brand = exif.make || '';
-    f.model = exif.model ? stripBrand(exif.model, exif.make) : '';
+    f.model = exif.model ? aliasModel(stripBrand(exif.model, exif.make)) : '';
     f.focal = exif.focal || '';
     f.aperture = exif.aperture || '';
     f.shutter = exif.shutter || '';
