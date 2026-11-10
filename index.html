@@ -141,6 +141,7 @@
   .sld{margin-bottom:11px;touch-action:pan-y}
   .sld .sld-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
   .sld.is-off{opacity:.42}
+  .qnote{font-size:11px;color:#7e7e88;line-height:1.5;margin-top:2px}
   .sld .sld-top span{font-size:12px;color:#b6b6bd}
   .sld output{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:none;cursor:pointer;
@@ -392,6 +393,7 @@
       <div class="sld" id="qualityRow">
         <div class="sld-top"><span>JPEG 质量</span><output id="qOut">92%</output></div>
         <input type="range" id="quality" min="60" max="100" value="92">
+        <div class="qnote" id="qualityNote" hidden>PNG 无损压缩，不需要设置质量</div>
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="hint">按原图分辨率重绘，输出尺寸随模板变化（加条/加边框）。点击导出会让你选择保存位置。</p>
@@ -1490,6 +1492,8 @@
   function syncQuality() {
     var isPng = state.ui.format === 'png';
     $('#quality').disabled = isPng;
+    $('#quality').style.display = isPng ? 'none' : '';
+    $('#qualityNote').hidden = !isPng;
     $('#qualityRow').classList.toggle('is-off', isPng);
     $('#qOut').textContent = isPng ? '无损' : Math.round(state.ui.quality * 100) + '%';
   }
