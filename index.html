@@ -1157,6 +1157,7 @@
   function renderInto(canvas, targetW) {
     var bmp = state.bitmap;
     var ui = state.ui;
+    var src = targetW <= 1200 ? previewSource() : bmp;
     var k = targetW / bmp.width;
     var iw = Math.max(1, Math.round(bmp.width * k));
     var ih = Math.max(1, Math.round(bmp.height * k));
@@ -1176,8 +1177,8 @@
       ch = ih + bd + bb;
     }
 
-    canvas.width = cw;
-    canvas.height = ch;
+    if (canvas.width !== cw) canvas.width = cw;
+    if (canvas.height !== ch) canvas.height = ch;
     var ctx = canvas.getContext('2d');
     // 大图缩小时 high 很吃 GPU，老机型上明显掉帧
     ctx.imageSmoothingQuality = cw >= 1400 ? 'high' : 'medium';
@@ -1185,22 +1186,22 @@
     if (tpl === 'bar' || tpl === 'dark') {
       ctx.fillStyle = tpl === 'bar' ? '#ffffff' : '#0b0b0c';
       ctx.fillRect(0, 0, cw, ch);
-      ctx.drawImage(bmp, bd, bd, iw, ih);
+      ctx.drawImage(src, bd, bd, iw, ih);
       drawBar(ctx, { tpl: tpl, iw: iw, ih: ih, bd: bd, barH: barH, cw: cw, ch: ch, barTop: bd + ih });
     } else if (tpl === 'center') {
-      ctx.drawImage(bmp, 0, 0, iw, ih);
+      ctx.drawImage(src, 0, 0, iw, ih);
       drawCenter(ctx, { iw: iw, ih: ih });
     } else if (tpl === 'corner') {
-      ctx.drawImage(bmp, 0, 0, iw, ih);
+      ctx.drawImage(src, 0, 0, iw, ih);
       drawCorner(ctx, { iw: iw, ih: ih });
     } else if (tpl === 'wordmark') {
-      ctx.drawImage(bmp, 0, 0, iw, ih);
+      ctx.drawImage(src, 0, 0, iw, ih);
       drawWordmark(ctx, { iw: iw, ih: ih });
     } else if (tpl === 'film') {
       var bb2 = ch - ih - bd;
       ctx.fillStyle = '#f6f3ec';
       ctx.fillRect(0, 0, cw, ch);
-      ctx.drawImage(bmp, bd, bd, iw, ih);
+      ctx.drawImage(src, bd, bd, iw, ih);
       drawFilm(ctx, { iw: iw, ih: ih }, bd, bb2);
     }
     return { w: cw, h: ch };
@@ -1416,6 +1417,23 @@
     reader.readAsText(file);
   }
 
+  // 预览用的降采样图源：从 12MP 原图直接缩放太慢，先缓存一张 1200px 的
+  function previewSource() {
+    var bmp = state.bitmap;
+    if (!bmp) return null;
+    if (bmp.width <= 1200) return bmp;
+    if (state.previewSrc) return state.previewSrc;
+    var c = document.createElement('canvas');
+    var k = 1200 / bmp.width;
+    c.width = 1200;
+    c.height = Math.max(1, Math.round(bmp.height * k));
+    var cx = c.getContext('2d');
+    cx.imageSmoothingQuality = 'medium';
+    cx.drawImage(bmp, 0, 0, c.width, c.height);
+    state.previewSrc = c;
+    return c;
+  }
+
   /* ================= 8. 载入图片 ================= */
   function loadBlob(blob, name) {
     if (!blob) return;
@@ -1429,6 +1447,7 @@
       return createBitmap(blob).then(function (bmp) {
         bmp = normalizeOrientation(bmp, exif.orientation);
         state.bitmap = bmp;
+        state.previewSrc = null;
         state.file = blob;
         state.fileName = name || 'image';
         applyExif(exif);
