@@ -261,11 +261,9 @@
     </section>
 
     <section>
-      <h3 class="sec">时间与位置</h3>
+      <h3 class="sec">拍摄时间</h3>
       <div class="row"><span>显示拍摄时间</span><label class="switch"><input type="checkbox" id="dateSw" checked><span></span></label></div>
       <input type="text" data-f="date" placeholder="2024.05.01">
-      <div class="row" style="margin-top:10px"><span>显示坐标</span><label class="switch"><input type="checkbox" id="locSw"><span></span></label></div>
-      <input type="text" data-f="location" placeholder="31.2304°N, 121.4737°E">
     </section>
 
     <section>
@@ -353,11 +351,11 @@
   var DEF_FIELDS = {
     brand: '', model: '', suffix: '',
     focal: '', aperture: '', shutter: '', iso: '',
-    date: '', location: '', signature: ''
+    date: '', signature: ''
   };
   var DEF_UI = {
     bar: 0.065, border: 0.006, logoScale: 1, font: 1,
-    showDate: true, showLoc: false, ink: 'auto',
+    showDate: true, ink: 'auto',
     format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
   };
 
@@ -459,10 +457,6 @@
 
   function dateText() {
     return (state.ui.showDate && state.fields.date) ? state.fields.date : '';
-  }
-
-  function locText() {
-    return (state.ui.showLoc && state.fields.location) ? state.fields.location : '';
   }
 
   /* ================= 3. EXIF 解析 ================= */
@@ -653,12 +647,6 @@
   function fmtDate(s) {
     var m = /^(\d{4})[:\-\.](\d{2})[:\-\.](\d{2})/.exec(String(s));
     return m ? m[1] + '.' + m[2] + '.' + m[3] : String(s);
-  }
-
-  function fmtGps(g) {
-    var la = Math.abs(g.lat).toFixed(4) + '°' + (g.lat >= 0 ? 'N' : 'S');
-    var lo = Math.abs(g.lon).toFixed(4) + '°' + (g.lon >= 0 ? 'E' : 'W');
-    return la + ', ' + lo;
   }
 
   function stripBrand(model, brand) {
@@ -890,7 +878,6 @@
     var params = paramsLine();
     var date = dateText();
     var sig = f.signature || '';
-    var loc = locText();
 
     var pad = g.iw * 0.032;
     var l1 = g.iw * 0.021 * ui.font;
@@ -898,7 +885,7 @@
     var logoH = g.iw * 0.030 * ui.logoScale;
     var lw = logoW(logoH);
 
-    var second = [params, loc].filter(Boolean).join('   ');
+    var second = params;
     var third = [date, sig].filter(Boolean).join('   ');
     var lineGap = l2 * 0.55;
     var h1 = Math.max(l1 * 1.2, logoH);
@@ -977,7 +964,6 @@
     var name = deviceName();
     var params = paramsLine();
     var date = dateText();
-    var loc = locText();
     var sig = f.signature || '';
 
     var s1 = g.iw * 0.0175 * ui.font;
@@ -997,7 +983,7 @@
     if (name) drawT(ctx, name, x, y1, { size: s1, weight: 500, color: ink });
     if (params) drawT(ctx, params, right, y1, { size: s2, weight: 500, color: ink, align: 'right' });
 
-    var l2 = [date, loc].filter(Boolean).join('   ');
+    var l2 = date;
     if (l2) drawT(ctx, l2, left, y2, { size: s2, weight: 400, color: sub });
     if (sig) drawT(ctx, sig, right, y2, { size: s2 * 0.96, weight: 400, color: sub, align: 'right' });
   }
@@ -1315,7 +1301,6 @@
     f.shutter = exif.shutter || '';
     f.iso = exif.iso || '';
     f.date = exif.date || '';
-    f.location = exif.gps ? fmtGps(exif.gps) : '';
     state.count = ['focal', 'aperture', 'shutter', 'iso', 'date'].filter(function (k) { return f[k]; }).length;
     syncControls();
   }
@@ -1350,7 +1335,6 @@
       n.style.display = list.indexOf(state.template) >= 0 ? '' : 'none';
     });
     $('#dateSw').checked = !!state.ui.showDate;
-    $('#locSw').checked = !!state.ui.showLoc;
 
     setRange('#bar', state.ui.bar * 100, '#barOut', '%', 1);
     setRange('#border', state.ui.border * 100, '#borderOut', '%', 1);
@@ -1445,11 +1429,6 @@
 
   $('#dateSw').addEventListener('change', function (e) {
     state.ui.showDate = e.target.checked;
-    scheduleRender();
-    autosave();
-  });
-  $('#locSw').addEventListener('change', function (e) {
-    state.ui.showLoc = e.target.checked;
     scheduleRender();
     autosave();
   });
