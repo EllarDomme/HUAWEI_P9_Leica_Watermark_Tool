@@ -317,6 +317,16 @@
         <div class="sld-top"><span>整体字号</span><output id="fontOut">100%</output></div>
         <input type="range" id="font" min="80" max="130" step="5" value="100">
       </div>
+      <div class="row">
+        <span>字体</span>
+        <select id="fontFamily" class="sel" style="width:140px">
+          <option value="default">默认（系统）</option>
+          <option value="din">DIN 工业</option>
+          <option value="mono">等宽</option>
+          <option value="serif">衬线</option>
+          <option value="human">人文</option>
+        </select>
+      </div>
       <div class="sld" data-show="center">
         <div class="sld-top"><span>垂直位置</span><output id="posOut">75</output></div>
         <input type="range" id="pos" min="0" max="100" step="5" value="75">
@@ -371,7 +381,16 @@
   'use strict';
 
   /* ================= 1. 常量与状态 ================= */
-  var FONT = '"Segoe UI","SF Pro Text","PingFang SC","Microsoft YaHei",Arial,sans-serif';
+  var FONT_STACKS = {
+    'default': '"Segoe UI","SF Pro Text","PingFang SC","Microsoft YaHei",Arial,sans-serif',
+    din: '"Bahnschrift SemiCondensed","Bahnschrift","DIN Alternate","Roboto Condensed","Roboto","PingFang SC","Microsoft YaHei",sans-serif',
+    mono: '"Consolas","SF Mono","Roboto Mono","Droid Sans Mono",monospace',
+    serif: '"Georgia","Times New Roman","Noto Serif","Songti SC","SimSun",serif',
+    human: '"Candara","Optima","Roboto","PingFang SC","Microsoft YaHei",sans-serif'
+  };
+  function fontStack() {
+    return FONT_STACKS[state.ui.fontFamily] || FONT_STACKS['default'];
+  }
   var HAS_LS = 'letterSpacing' in CanvasRenderingContext2D.prototype;
   var STORE_PRESET = 'exifwm.presets.v1';
   var STORE_AUTO = 'exifwm.autosave.v1';
@@ -382,7 +401,7 @@
     date: '', signature: ''
   };
   var DEF_UI = {
-    bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1,
+    bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
     showDate: true, timeMode: 'date', ink: 'auto',
     format: 'jpeg', quality: 0.92, exportMax: 0, pos: 75, logoGap: 53
   };
@@ -434,7 +453,7 @@
   }
 
   function setFont(ctx, size, weight) {
-    ctx.font = (weight || 400) + ' ' + size + 'px ' + FONT;
+    ctx.font = (weight || 400) + ' ' + size + 'px ' + fontStack();
   }
 
   function measureAt(ctx, text, size, weight, spacing) {
@@ -1452,6 +1471,7 @@
     $$('#barAlignSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === (state.ui.barAlign || 'center'));
     });
+    $('#fontFamily').value = state.ui.fontFamily || 'default';
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
     $('#quality').disabled = state.ui.format === 'png';
@@ -1538,6 +1558,12 @@
     });
   });
 
+  $('#fontFamily').addEventListener('change', function (e) {
+    state.ui.fontFamily = e.target.value;
+    scheduleRender();
+    autosave();
+  });
+
   $('#timeMode').addEventListener('change', function (e) {
     state.ui.timeMode = e.target.value;
     scheduleRender();
@@ -1585,6 +1611,7 @@
     state.ui.logoGap = d.logoGap;
     state.ui.barAlign = d.barAlign;
     state.ui.timeMode = d.timeMode;
+    state.ui.fontFamily = d.fontFamily;
     syncControls();
     scheduleRender();
     autosave();
