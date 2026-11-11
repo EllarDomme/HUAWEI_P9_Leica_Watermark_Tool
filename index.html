@@ -149,11 +149,11 @@
   .zoombox{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:220;display:flex;flex-direction:column}
   .zbar{display:flex;flex-wrap:wrap;align-items:center;padding:10px 12px;background:#101013;border-bottom:1px solid var(--line)}
   .zbar .btn{height:34px;padding:0 12px;font-size:13px;margin:0 8px 0 0}
-  .zview{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center;padding:8px}
-  .zoombox img{display:block;margin:0 auto;background:#000}
-  .zoombox.fit img{width:100%;height:auto;max-width:100%}
-  .zoombox.actual img{width:auto;height:auto;max-width:none}
-  .zoombox .zspacer{flex:1 1 auto}
+  .zview{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;background:#000;touch-action:none;cursor:grab}
+  .zview.grabbing{cursor:grabbing}
+  .zstage{position:absolute;left:0;top:0;width:100%;transform-origin:0 0;will-change:transform}
+  .zstage img{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none}
+  .zhint{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:12px;color:rgba(255,255,255,.62);pointer-events:none;transition:opacity .35s}
 
   .savepanel{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:14px}
   .savepanel .box{background:#121214;border:1px solid var(--line2);border-radius:14px;padding:14px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column}
@@ -2156,6 +2156,149 @@
 
   var zBox = null, zImg = null, zView = null, activePanel = null;
 
+  /* 预览：双指缩放 + 拖动 */
+  var zView, zStage, zImg, zBox, zHint;
+  var zs = { scale: 1, tx: 0, ty: 0, fitW: 0, fitH: 0 };
+  var zPts = new Map();
+  var zStart = null;
+
+  function zApply() {
+    zStage.style.transform = 'translate3d(' + zs.tx + 'px,' + zs.ty + 'px,0) scale(' + zs.scale + ')';
+  }
+
+  function zClamp() {
+    var vw = zView.clientWidth, vh = zView.clientHeight;
+    var w = zs.fitW * zs.scale, h = zs.fitH * zs.scale;
+    if (w <= vw) zs.tx = (vw - w) / 2;
+    else zs.tx = Math.min(0, Math.max(vw - w, zs.tx));
+    if (h <= vh) zs.ty = (vh - h) / 2;
+    else zs.ty = Math.min(0, Math.max(vh - h, zs.ty));
+  }
+
+  function zReset() {
+    zs.scale = 1; zs.tx = 0;
+    zs.ty = Math.max(0, (zView.clientHeight - zs.fitH) / 2);
+    zClamp(); zApply();
+  }
+
+  function zLayout() {
+    if (!zImg || !zImg.naturalWidth) return;
+    var vw = zView.clientWidth, vh = zView.clientHeight;
+    var w = vw;
+    var h = zImg.naturalHeight * (w / zImg.naturalWidth);
+    if (h > vh) { var k = vh / h; w *= k; h = vh; }
+    zs.fitW = w; zs.fitH = h;
+    zStage.style.width = w + 'px';
+    zReset();
+  }
+
+  function zZoomAt(factor, cx, cy) {
+    var next = Math.min(8, Math.max(1, zs.scale * factor));
+    if (Math.abs(next - zs.scale) < 1e-4) return;
+    var r = next / zs.scale;
+    zs.tx = cx - (cx - zs.tx) * r;
+    zs.ty = cy - (cy - zs.ty) * r;
+    zs.scale = next;
+    zClamp(); zApply();
+  }
+
+  function zMid() {
+    var a = Array.from(zPts.values());
+    var x = 0, y = 0;
+    a.forEach(function (p) { x += p.x; y += p.y; });
+    return { x: x / a.length, y: y / a.length };
+  }
+
+  function zDist() {
+    var a = Array.from(zPts.values());
+    if (a.length < 2) return 0;
+    var dx = a[0].x - a[1].x, dy = a[0].y - a[1].y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function zLocal(e) {
+    var r = zView.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function zTapHint() {
+    if (!zHint) return;
+    zHint.style.opacity = '1';
+    clearTimeout(zHint._t);
+    zHint._t = setTimeout(function () { zHint.style.opacity = '0'; }, 2600);
+  }
+
+  function zBind() {
+    zView.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      zView.setPointerCapture(e.pointerId);
+      zView.classList.add('grabbing');
+      zPts.set(e.pointerId, zLocal(e));
+      zStart = { scale: zs.scale, tx: zs.tx, ty: zs.ty, dist: zDist(), mid: zMid() };
+      zTapHint();
+    });
+
+    zView.addEventListener('pointermove', function (e) {
+      if (!zPts.has(e.pointerId)) return;
+      var prev = zPts.get(e.pointerId);
+      var now = zLocal(e);
+      zPts.set(e.pointerId, now);
+
+      if (zPts.size >= 2) {
+        var d = zDist();
+        if (zStart && zStart.dist > 0 && d > 0) {
+          var m = zMid();
+          zZoomAt(d / zStart.dist, m.x, m.y);
+          zStart.dist = d;
+          zStart.mid = m;
+        }
+      } else if (zStart) {
+        zs.tx += now.x - prev.x;
+        zs.ty += now.y - prev.y;
+        zClamp(); zApply();
+      }
+    });
+
+    function end(e) {
+      zPts.delete(e.pointerId);
+      if (!zPts.size) {
+        zView.classList.remove('grabbing');
+        zStart = null;
+      } else {
+        zStart = { scale: zs.scale, tx: zs.tx, ty: zs.ty, dist: zDist(), mid: zMid() };
+      }
+    }
+    zView.addEventListener('pointerup', end);
+    zView.addEventListener('pointercancel', end);
+    zView.addEventListener('pointerleave', end);
+
+    zView.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var p = zLocal(e);
+      zZoomAt(e.deltaY < 0 ? 1.12 : 0.89, p.x, p.y);
+    }, { passive: false });
+
+    // 双击/双指连点：在适应屏幕与 2.5× 之间切换
+    var lastTap = 0;
+    zView.addEventListener('pointerup', function (e) {
+      if (e.pointerType !== 'touch' && e.pointerType !== 'mouse') return;
+      var now = Date.now();
+      if (now - lastTap < 280 && zPts.size === 0) {
+        var p = zLocal(e);
+        if (zs.scale > 1.2) zReset();
+        else zZoomAt(2.5, p.x, p.y);
+        zTapHint();
+        lastTap = 0;
+      } else {
+        lastTap = now;
+      }
+    });
+
+    window.addEventListener('resize', function () {
+      if (zBox && zBox.style.display === 'flex') zLayout();
+    });
+  }
+
   function openPreview() {
     if (!state.bitmap || !el.preview.width) return;
     var url;
@@ -2167,14 +2310,22 @@
 
     if (!zBox) {
       zBox = document.createElement('div');
-      zBox.className = 'zoombox fit';
+      zBox.className = 'zoombox';
       var bar = document.createElement('div');
       bar.className = 'zbar';
 
       var bFit = document.createElement('button');
       bFit.className = 'btn primary';
       bFit.textContent = '适应屏幕';
-      bFit.onclick = function () { setZoom(false); };
+      bFit.onclick = zReset;
+
+      var bReal = document.createElement('button');
+      bReal.className = 'btn';
+      bReal.textContent = '原图';
+      bReal.onclick = function () {
+        if (!zImg.naturalWidth) return;
+        zZoomAt(zImg.naturalWidth / zs.fitW / zs.scale, zView.clientWidth / 2, zView.clientHeight / 2);
+      };
 
       var bPick = document.createElement('button');
       bPick.className = 'btn';
@@ -2187,30 +2338,34 @@
       bClose.textContent = '关闭';
       bClose.onclick = closePreview;
 
-      bar.appendChild(bFit); bar.appendChild(bPick); bar.appendChild(bClose);
+      bar.appendChild(bFit); bar.appendChild(bReal);
+      bar.appendChild(bPick); bar.appendChild(bClose);
 
       zView = document.createElement('div');
       zView.className = 'zview';
+      zStage = document.createElement('div');
+      zStage.className = 'zstage';
       zImg = document.createElement('img');
-      zView.appendChild(zImg);
+      zImg.draggable = false;
+      zStage.appendChild(zImg);
+      zView.appendChild(zStage);
+
+      zHint = document.createElement('div');
+      zHint.className = 'zhint';
+      zHint.textContent = '双指缩放 · 拖动查看 · 双击切换';
+      zView.appendChild(zHint);
 
       zBox.appendChild(bar); zBox.appendChild(zView);
       document.body.appendChild(zBox);
-    }
-
-    function setZoom(actual) {
-      zBox.classList.toggle('actual', actual);
-      zBox.classList.toggle('fit', !actual);
-      zView.scrollTop = 0;
-      zView.scrollLeft = 0;
+      zBind();
     }
 
     zImg.onload = function () {
-      zBox.classList.add('fit');
-      zBox.classList.remove('actual');
+      requestAnimationFrame(zLayout);
     };
     zImg.src = url;
     zBox.style.display = 'flex';
+    requestAnimationFrame(function () { zLayout(); zTapHint(); });
   }
 
   function closePreview() {
