@@ -431,6 +431,10 @@
         <div class="sld-top"><span>日期深浅</span><output id="dateToneOut">100%</output></div>
         <input type="range" id="dateTone" min="10" max="100" step="2" value="100">
       </div>
+      <div class="sld">
+        <div class="sld-top"><span>参数深浅</span><output id="paramToneOut">100%</output></div>
+        <input type="range" id="paramTone" min="10" max="100" step="2" value="100">
+      </div>
     </section>
 
     <section>
@@ -490,7 +494,7 @@
   };
   var DEF_UI = {
     bar: 0.082, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, toneKey: '', tones: null,
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, paramTone: 100, toneKey: '', tones: null,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -969,14 +973,20 @@
     if (!init && ui.toneKey && ui.tones[ui.toneKey]) {
       ui.tones[ui.toneKey].name = ui.nameTone;
       ui.tones[ui.toneKey].date = ui.dateTone;
+      ui.tones[ui.toneKey].param = ui.paramTone;
     }
     var key = toneKeyNow();
     ui.toneKey = key;
     if (!ui.tones[key]) {
-      ui.tones[key] = { name: key === 'gray' ? 38 : 100, date: key === 'gray' ? 48 : 100 };
+      ui.tones[key] = {
+        name: key === 'gray' ? 38 : 100,
+        date: key === 'gray' ? 48 : 100,
+        param: 100
+      };
     }
     ui.nameTone = ui.tones[key].name;
     ui.dateTone = ui.tones[key].date;
+    ui.paramTone = ui.tones[key].param == null ? 100 : ui.tones[key].param;
   }
 
   function mixHex(a, b, t) {
@@ -996,6 +1006,7 @@
     var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
     var ink = darkTpl ? (ui.ink === 'black' ? (BAR_INK[ui.barInk] || '#0A0A0B') : (ui.barInk === 'gray' ? '#cfcfd4' : '#f2f2f2')) : (BAR_INK[ui.barInk] || BAR_INK.default);
     var nameInk = darkTpl ? toneColor(ui.nameTone, true) : toneColor(ui.nameTone, false);
+    var paramInk = darkTpl ? toneColor(ui.paramTone, true) : toneColor(ui.paramTone, false);
     var sub = darkTpl ? toneColor(ui.dateTone, true) : toneColor(ui.dateTone, false);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
@@ -1072,7 +1083,7 @@
       }
       var tx = gx;
       tokens.forEach(function (t, i) {
-        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: ink });
+        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: paramInk });
         tx += sizes[i] + pgap;
       });
     }
@@ -1094,6 +1105,7 @@
     var ink = overlayInk();
     var nameInk = overlayTone(ink, ui.nameTone);
     var dateInk = overlayTone(ink, ui.dateTone);
+    var paramInk = overlayTone(ink, ui.paramTone);
     var name = deviceName();
     var params = paramsLine();
     var date = dateText();
@@ -1140,7 +1152,7 @@
             l2s *= (g.iw * 0.90) / pw;
           }
           drawT(ctx, params, g.iw / 2, cy, {
-            size: l2s, weight: 400, color: ink, align: 'center',
+            size: l2s, weight: 400, color: paramInk, align: 'center',
             shadow: shadow, shadowBlur: l2s * 0.5, shadowY: l2s * 0.05
           });
         }
@@ -1165,6 +1177,7 @@
     var ink = overlayInk();
     var nameInk = overlayTone(ink, ui.nameTone);
     var sub = overlayTone(ink, ui.dateTone);
+    var paramInk = overlayTone(ink, ui.paramTone);
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.55)' : null;
     var name = deviceName();
     var params = paramsLine();
@@ -1201,7 +1214,7 @@
     if (second) {
       y += lineGap + l2 * 0.6;
       drawT(ctx, second, pad, y, {
-        size: l2, weight: 400, color: ink,
+        size: l2, weight: 400, color: paramInk,
         shadow: shadow, shadowBlur: l2 * 0.5, shadowY: l2 * 0.05
       });
       y += l2 * 0.6;
@@ -1219,6 +1232,7 @@
     var ink = overlayInk();
     var nameInk = overlayTone(ink, ui.nameTone);
     var dateInk = overlayTone(ink, ui.dateTone);
+    var paramInk = overlayTone(ink, ui.paramTone);
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.5)' : null;
     var word = (f.brand || '').toUpperCase();
     var model = stripBrand(f.model, f.brand);
@@ -1259,6 +1273,7 @@
     var ink = (typeof BAR_INK !== 'undefined' && BAR_INK[ui.barInk]) || '#0A0A0B';
     var nameInk = toneColor(ui.nameTone, false);
     var sub = toneColor(ui.dateTone, false);
+    var paramInk = toneColor(ui.paramTone, false);
     var name = deviceName();
     var params = paramsLine();
     var date = dateText();
@@ -1297,7 +1312,7 @@
       x += lw + s1 * 0.5;
     }
     if (name) drawT(ctx, name, x, y1, { size: s1, weight: 500, color: nameInk });
-    if (params) drawT(ctx, params, right, y1, { size: s2, weight: 500, color: ink, align: 'right' });
+    if (params) drawT(ctx, params, right, y1, { size: s2, weight: 500, color: paramInk, align: 'right' });
 
     var l2 = date;
     var sigW = sig ? measureAt(ctx, sig, s2 * 0.96, 400) + s2 * 1.1 : 0;
@@ -1826,6 +1841,10 @@
       var dRow = $('#dateTone').closest('.sld');
       if (dRow) dRow.style.display = state.ui.showDate ? '' : 'none';
     }
+    if ($('#paramTone')) {
+      $('#paramTone').value = state.ui.paramTone == null ? 100 : state.ui.paramTone;
+      $('#paramToneOut').textContent = ($('#paramTone').value) + '%';
+    }
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
     syncQuality();
@@ -1923,6 +1942,13 @@
     scheduleRender();
   });
   $('#dateTone').addEventListener('change', function () { autosave(); });
+
+  $('#paramTone').addEventListener('input', function (e) {
+    state.ui.paramTone = parseInt(e.target.value, 10);
+    $('#paramToneOut').textContent = e.target.value + '%';
+    scheduleRender();
+  });
+  $('#paramTone').addEventListener('change', function () { autosave(); });
 
   $('#barInk').addEventListener('change', function (e) {
     var v = e.target.value;
