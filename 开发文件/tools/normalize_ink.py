@@ -127,7 +127,8 @@ def main():
         for cp, name in cmap.items():
             ch = chr(cp)
             if ch in ROUND:
-                target = (-10.0, 710.0)          # 圆字上下各溢出 1.5%
+                # 参考图实测：O 与 H 同高、0 与 2 同高，原设计不做 overshoot
+                target = (0.0, 700.0) if (ch in UPPER or ch in DIGITS) else (0.0, 500.0)
             elif ch in UPPER or ch in DIGITS or ch in LOWER_ASC:
                 target = (0.0, 700.0)
             elif ch in XH_LETTERS:
