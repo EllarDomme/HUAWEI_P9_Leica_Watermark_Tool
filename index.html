@@ -1059,7 +1059,8 @@
     var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
     if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * (100 - gapV) / 100 });
     if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013 });
-    if (params || date) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
+    if (params) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
+    if (date) items.push({ type: 'date', size: pS * 0.86, gap: pS * 0.85 });
     if (sig) items.push({ type: 'text', text: sig, size: sS, weight: 400, gap: sS * 1.05 });
 
     // 末尾不加速度间距，避免整块被抬高
@@ -1079,32 +1080,24 @@
       if (it.type === 'logo') {
         drawLogo(ctx, g.iw / 2, cy, it.h, 'center');
       } else if (it.type === 'line2') {
-        // 参数用主色，日期用弱一档的颜色，视觉上分开
+        // 参数单独一行居中（日期已独立成行）
         var l2s = it.size;
-        var pw = params ? measureAt(ctx, params, l2s, 400) : 0;
-        var dw = date ? measureAt(ctx, date, l2s * 0.92, 400) : 0;
-        var sw = (params && date) ? measureAt(ctx, '   ', l2s, 400) : 0;
-        var totalW = pw + sw + dw;
-        if (totalW > g.iw * 0.90) {
-          l2s *= (g.iw * 0.90) / totalW;
-          pw = params ? measureAt(ctx, params, l2s, 400) : 0;
-          dw = date ? measureAt(ctx, date, l2s * 0.92, 400) : 0;
-          sw = (params && date) ? measureAt(ctx, '   ', l2s, 400) : 0;
-        }
-        var sx = g.iw / 2 - (pw + sw + dw) / 2;
-        var dim = ink === '#ffffff' ? 'rgba(255,255,255,.68)' : 'rgba(20,20,20,.62)';
         if (params) {
-          drawT(ctx, params, sx, cy, {
-            size: l2s, weight: 400, color: ink, align: 'left',
+          var pw = measureAt(ctx, params, l2s, 400);
+          if (pw > g.iw * 0.90) {
+            l2s *= (g.iw * 0.90) / pw;
+          }
+          drawT(ctx, params, g.iw / 2, cy, {
+            size: l2s, weight: 400, color: ink, align: 'center',
             shadow: shadow, shadowBlur: l2s * 0.5, shadowY: l2s * 0.05
           });
         }
-        if (date) {
-          drawT(ctx, date, sx + pw + sw, cy, {
-            size: l2s * 0.92, weight: 400, color: dim, align: 'left',
-            shadow: shadow, shadowBlur: l2s * 0.5, shadowY: l2s * 0.05
-          });
-        }
+      } else if (it.type === 'date') {
+        var dimInk = ink === '#ffffff' ? 'rgba(255,255,255,.72)' : 'rgba(20,20,20,.66)';
+        drawT(ctx, date, g.iw / 2, cy, {
+          size: it.size, weight: 400, color: dimInk, align: 'center',
+          shadow: shadow, shadowBlur: it.size * 0.5, shadowY: it.size * 0.05
+        });
       } else {
         drawT(ctx, it.text, g.iw / 2, cy, {
           size: it.size, weight: it.weight, color: ink, align: 'center',
