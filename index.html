@@ -2016,6 +2016,7 @@
     if (!b) return;
     state.ui.ink = b.dataset.v;
     Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === b); });
+    syncControls();
     scheduleRender(); autosave();
   });
 
