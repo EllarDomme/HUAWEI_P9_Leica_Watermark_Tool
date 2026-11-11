@@ -2213,6 +2213,7 @@
   });
 
   /* ================= 10. 启动 ================= */
+  /*__DEV_START__*/
   window.__setDemo = function (dataUri, tpl) {
     if (tpl) pickTemplate(tpl);
     var m = /^data:([^;]+);base64,(.*)$/.exec(dataUri);
@@ -2223,31 +2224,43 @@
     loadBlob(new Blob([arr], { type: m[1] }), 'demo.jpg');
   };
 
-  function boot() {
+  function demoAuto() {
+    return window.__DEMO_IMAGE__ ? null : readStore(STORE_AUTO);
+  }
+
+  function demoBoot() {
     if (window.__DEMO_CLEAN__) document.body.classList.add('clean');
     if (window.__DEMO_IMAGE__) {
       var st = document.createElement('style');
       st.textContent = '*{transition:none!important;animation:none!important}';
       document.head.appendChild(st);
     }
+  }
+
+  function demoApply() {
+    if (!window.__DEMO_IMAGE__) return;
+    if (window.__DEMO_LOGO__) state.logoKind = window.__DEMO_LOGO__;
+    if (window.__DEMO_UI__) {
+      for (var dk in window.__DEMO_UI__) state.ui[dk] = window.__DEMO_UI__[dk];
+    }
+    setTimeout(function () { window.__setDemo(window.__DEMO_IMAGE__, window.__DEMO_TEMPLATE__); }, 30);
+  }
+  /*__DEV_END__*/
+
+  function boot() {
+    demoBoot();
     loadImage(LEICA_SRC).then(function (img) {
       leicaImg = img;
       scheduleRender();
     }).catch(function () {});
     loadPresets();
-    var auto = window.__DEMO_IMAGE__ ? null : readStore(STORE_AUTO);
+    var auto = demoAuto();
     if (auto && auto.fields) {
       applyData(auto);
     } else {
       syncControls();
     }
-    if (window.__DEMO_IMAGE__) {
-      if (window.__DEMO_LOGO__) state.logoKind = window.__DEMO_LOGO__;
-      if (window.__DEMO_UI__) {
-        for (var dk in window.__DEMO_UI__) state.ui[dk] = window.__DEMO_UI__[dk];
-      }
-      setTimeout(function () { window.__setDemo(window.__DEMO_IMAGE__, window.__DEMO_TEMPLATE__); }, 30);
-    }
+    demoApply();
   }
 
   boot();

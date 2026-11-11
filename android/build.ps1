@@ -9,6 +9,14 @@ $env:JAVA_HOME = 'C:\Users\34684\.jdks\ms-17.0.19'
 $env:PATH = "$env:JAVA_HOME\bin;$bt;$env:PATH"
 
 Copy-Item (Join-Path $root '..\index.html') (Join-Path $root 'assets\index.html') -Force
+
+# 发行版里剥掉测试钩子（源码仍保留，方便本地截图测试）
+$htmlPath = Join-Path $root 'assets\index.html'
+$html = [System.IO.File]::ReadAllText($htmlPath)
+$shim = "function demoAuto(){ return readStore(STORE_AUTO); }`n  function demoBoot(){}`n  function demoApply(){}"
+$html = [regex]::Replace($html, '(?s)/\*__DEV_START__\*/.*?/\*__DEV_END__\*/', $shim)
+if ($html -match '__DEMO|__setDemo') { throw 'demo hooks still present' }
+[System.IO.File]::WriteAllText($htmlPath, $html, (New-Object System.Text.UTF8Encoding($false)))
 if (Test-Path $build) { Remove-Item $build -Recurse -Force }
 New-Item -ItemType Directory -Path $build, "$build\classes", "$build\dex" -Force | Out-Null
 
