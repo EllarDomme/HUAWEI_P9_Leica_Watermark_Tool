@@ -361,7 +361,7 @@
       <div class="sec-row"><h3 class="sec">外观</h3><button class="mini" id="resetLook">重置</button></div>
       <div class="sld" data-show="bar,dark">
         <div class="sld-top"><span>白条高度</span><output id="barOut">8.4%</output></div>
-        <input type="range" id="bar" min="4" max="20" step="0.5" value="8.4">
+        <input type="range" id="bar" min="4" max="20" step="0.5" value="8.2">
       </div>
       <div class="row" data-show="bar,dark">
         <span>文字位置</span>
@@ -489,7 +489,7 @@
     date: '', signature: ''
   };
   var DEF_UI = {
-    bar: 0.078, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
+    bar: 0.082, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
     showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, toneKey: '', tones: null,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
@@ -999,8 +999,8 @@
     var sub = darkTpl ? toneColor(ui.dateTone, true) : toneColor(ui.dateTone, false);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
-    var padL = g.bd + g.iw * 0.021;
-    var padR = g.cw - g.bd - g.iw * 0.021;
+    var padL = g.bd + g.iw * 0.028;
+    var padR = g.cw - g.bd - g.iw * 0.028;
 
     var name = deviceName();
     var date = dateText();
@@ -1010,12 +1010,12 @@
     var l2 = [date, sig].filter(Boolean).join('   ');
 
     // 字号按图宽走，不随白条高度缩放；条太矮时才整体缩小以免溢出
-    var nameS = g.iw * 0.0215 * ui.font;
+    var nameS = g.iw * 0.0252 * ui.font;
     var pS = nameS;
-    var subS = g.iw * 0.0150 * ui.font;
+    var subS = g.iw * 0.0174 * ui.font;
     var pH = g.iw * 0.0385 * ui.logoScale;
 
-    var gapLine = nameS * 0.15;
+    var gapLine = nameS * 0.42;
     var blockH = nameS * 1.25 + (l2 ? gapLine + subS * 1.3 : 0);
     var maxH = g.barH * 0.84;
     if (blockH > maxH) {
@@ -1044,8 +1044,8 @@
     var pSizes = tokens.map(function (t) { return measureAt(ctx, t, pS, 700); });
     var pW = pSizes.reduce(function (a, b) { return a + b; }, 0) + paramGap * Math.max(0, tokens.length - 1);
     var lw = logoW(pH);
-    var gapIcon = g.iw * 0.016;
-    var gapParam = g.iw * 0.016;
+    var gapIcon = g.iw * 0.022;
+    var gapParam = g.iw * 0.020;
     var dividerW = Math.max(1.5, g.iw * 0.0012);
     var showDivider = !!(lw && tokens.length);
     var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (tokens.length ? pW : 0);
