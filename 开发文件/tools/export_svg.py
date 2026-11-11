@@ -45,13 +45,13 @@ def single(font, ch, path):
     if not info:
         return False
     upm = info['upm']
-    y_top = int(upm * 0.8)
-    y_bot = -int(upm * 0.3)
-    h = y_top - y_bot
+    asc = int(upm * 0.8)
+    desc = int(upm * 0.3)
+    h = asc + desc
     svg = (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {y_bot} {info["adv"]} {h}" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {info["adv"]} {h}" '
         f'width="{info["adv"]}" height="{h}">\n'
-        f'  <g transform="translate(0,0) scale(1,-1)">\n'
+        f'  <g transform="translate(0,{asc}) scale(1,-1)">\n'
         f'    <path d="{info["d"]}" fill="#000"/>\n'
         f'  </g>\n</svg>\n'
     )
@@ -70,7 +70,14 @@ def main():
         for ch in text:
             if ch.isspace():
                 continue
-            fn = ch if ch.isalnum() else 'sym%02x' % ord(ch)
+            if ch.isupper():
+                fn = 'u_' + ch
+            elif ch.islower():
+                fn = 'l_' + ch
+            elif ch.isdigit():
+                fn = 'd_' + ch
+            else:
+                fn = 's_%02x' % ord(ch)
             if single(font, ch, os.path.join(OUT, 'glyphs', fn + '.svg')):
                 count += 1
     print('single svg:', count)
