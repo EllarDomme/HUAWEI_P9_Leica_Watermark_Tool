@@ -228,7 +228,7 @@ def harvest(image, text_rows, crops, tag, x_off=0):
     return hits
 
 
-def trace(crop, cap_px):
+def trace(crop, cap_px, baseline=None):
     h, w = crop.shape
     k = CAP / float(cap_px)
     contours, hierarchy = cv2.findContours(crop, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
@@ -239,7 +239,7 @@ def trace(crop, cap_px):
         if cv2.contourArea(c) < 3:
             continue
         approx = cv2.approxPolyDP(c, EPS, True)
-        pts = [(float(p[0][0]) * k + CAP * GAP * 0.5, (h - float(p[0][1])) * k) for p in approx]
+        pts = [(float(p[0][0]) * k + CAP * GAP * 0.5, ((h if baseline is None else baseline) - float(p[0][1])) * k) for p in approx]
         if len(pts) < 4:
             continue
         is_hole = hierarchy[0][i][3] != -1
