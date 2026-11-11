@@ -376,11 +376,11 @@
       </div>
       <div class="sld">
         <div class="sld-top"><span>图标大小</span><output id="logoOut">100%</output></div>
-        <input type="range" id="logo" min="50" max="180" step="5" value="100">
+        <input type="range" id="logo" min="50" max="180" step="5" value="110">
       </div>
       <div class="sld">
         <div class="sld-top"><span>整体字号</span><output id="fontOut">100%</output></div>
-        <input type="range" id="font" min="80" max="130" step="5" value="100">
+        <input type="range" id="font" min="80" max="130" step="5" value="105">
       </div>
       <div class="row pin-row">
         <span>预览固定</span>
@@ -489,7 +489,7 @@
     date: '', signature: ''
   };
   var DEF_UI = {
-    bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
+    bar: 0.078, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
     showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
@@ -1076,7 +1076,7 @@
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.55)' : null;
 
     // 以下比例来自参考图实测（1080×1440）
-    var lh = g.iw * 0.0546 * ui.logoScale;
+    var lh = g.iw * 0.0568 * ui.logoScale;
     var nameS = g.iw * 0.0233 * ui.font;
     var pS = g.iw * 0.0172 * ui.font;
     var sS = g.iw * 0.016 * ui.font;
