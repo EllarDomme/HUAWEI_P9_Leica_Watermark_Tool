@@ -935,7 +935,7 @@
   // 深浅滑块：0 = 中灰，100 = 当前文字黑度的最深色
   function toneColor(tone, darkTpl) {
     var t = Math.max(0, Math.min(100, tone == null ? 100 : tone)) / 100;
-    if (darkTpl) return 'rgba(255,255,255,' + (0.5 + 0.5 * t).toFixed(3) + ')';
+    if (darkTpl) return mixHex('#8A8A8E', '#FFFFFF', t);
     var deep = state.ui.barInk === 'gray' ? TONE_GRAY : TONE_BLACK;
     return mixHex(TONE_LIGHT, deep, t);
   }
@@ -1166,7 +1166,7 @@
     }
     if (name) {
       drawT(ctx, name, x, cy1, {
-        size: l1, weight: 650, color: ink,
+        size: l1, weight: 650, color: nameInk,
         shadow: shadow, shadowBlur: l1 * 0.5, shadowY: l1 * 0.05
       });
     }
@@ -1228,7 +1228,9 @@
 
   function drawFilm(ctx, g, b, bb) {
     var f = state.fields, ui = state.ui;
-    var ink = '#1c1a16', sub = 'rgba(28,26,22,.55)';
+    var ink = (typeof BAR_INK !== 'undefined' && BAR_INK[ui.barInk]) || '#0A0A0B';
+    var nameInk = toneColor(ui.nameTone, false);
+    var sub = toneColor(ui.dateTone, false);
     var name = deviceName();
     var params = paramsLine();
     var date = dateText();
