@@ -1,0 +1,15 @@
+P9 Sans
+=======
+
+P9 Sans is a derivative of Roboto (https://github.com/googlefonts/roboto),
+which is licensed under the Apache License, Version 2.0.
+
+Modifications made for this project:
+  - Horizontal compression to 94% of original width
+  - Dot-shaped glyph parts (. : i j ; !) replaced with squares
+  - Family renamed to "P9 Sans"; PostScript names changed
+
+The original Roboto license text is available at:
+  http://www.apache.org/licenses/LICENSE-2.0
+
+This derivative is distributed under the same Apache License 2.0.
