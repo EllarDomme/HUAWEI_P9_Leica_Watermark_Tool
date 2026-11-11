@@ -1960,8 +1960,8 @@
   $('#resetLook').addEventListener('click', function () {
     var d = clone(DEF_UI);
     Object.keys(d).forEach(function (k) {
-      // 预览固定/高度属于布局，不跟着外观重置
-      if (k === 'pinPreview' || k === 'previewVh') return;
+      // 预览固定/高度属于布局；拍摄时间开关属于内容，都不跟着外观重置
+      if (k === 'pinPreview' || k === 'previewVh' || k === 'showDate' || k === 'timeMode') return;
       state.ui[k] = d[k];
     });
     applyPreviewH();
