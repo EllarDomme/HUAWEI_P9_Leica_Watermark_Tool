@@ -387,21 +387,6 @@
         <label class="switch"><input type="checkbox" id="pinSw" checked><span></span></label>
       </div>
       <div class="row">
-        <span>文字黑度</span>
-        <select id="barInk" class="sel" style="width:140px">
-          <option value="ink">墨黑</option>
-          <option value="gray">深灰</option>
-        </select>
-      </div>
-      <div class="sld">
-        <div class="sld-top"><span>设备名深浅</span><output id="nameToneOut">100%</output></div>
-        <input type="range" id="nameTone" min="10" max="100" step="2" value="100">
-      </div>
-      <div class="sld">
-        <div class="sld-top"><span>日期深浅</span><output id="dateToneOut">100%</output></div>
-        <input type="range" id="dateTone" min="10" max="100" step="2" value="100">
-      </div>
-      <div class="row">
         <span>字体</span>
         <select id="fontFamily" class="sel" style="width:140px">
           <option value="default">默认（系统）</option>
@@ -430,6 +415,21 @@
           <button data-v="white">白</button>
           <button data-v="black">黑</button>
         </div>
+      </div>
+      <div class="row">
+        <span>文字黑度</span>
+        <select id="barInk" class="sel" style="width:140px">
+          <option value="ink">墨黑</option>
+          <option value="gray">深灰</option>
+        </select>
+      </div>
+      <div class="sld">
+        <div class="sld-top"><span>设备名深浅</span><output id="nameToneOut">100%</output></div>
+        <input type="range" id="nameTone" min="10" max="100" step="2" value="100">
+      </div>
+      <div class="sld">
+        <div class="sld-top"><span>日期深浅</span><output id="dateToneOut">100%</output></div>
+        <input type="range" id="dateTone" min="10" max="100" step="2" value="100">
       </div>
     </section>
 
@@ -921,6 +921,20 @@
     });
   }
 
+
+  function overlayInk() {
+    var base = autoInk();
+    if (base === '#ffffff') return '#ffffff';
+    return (typeof BAR_INK !== 'undefined' && BAR_INK[state.ui.barInk]) || '#141414';
+  }
+
+  function overlayTone(baseInk, tone) {
+    var t = (tone == null ? 100 : tone) / 100;
+    if (baseInk === '#ffffff') return 'rgba(255,255,255,' + (0.35 + 0.65 * t).toFixed(3) + ')';
+    var c = (typeof BAR_INK !== 'undefined' && BAR_INK[state.ui.barInk]) || '#141414';
+    return mixHex(c, '#ffffff', 1 - t);
+  }
+
   /* ================= 5. 模板绘制 ================= */
   var BAR_INK = {
     default: '#141414',
@@ -1042,7 +1056,9 @@
 
   function drawCenter(ctx, g) {
     var f = state.fields, ui = state.ui;
-    var ink = autoInk();
+    var ink = overlayInk();
+    var nameInk = overlayTone(ink, ui.nameTone);
+    var dateInk = overlayTone(ink, ui.dateTone);
     var name = deviceName();
     var params = paramsLine();
     var date = dateText();
@@ -1058,10 +1074,10 @@
     var items = [];
     var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
     if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * (100 - gapV) / 100 });
-    if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013 });
+    if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013, color: nameInk });
     if (params) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
     if (date) items.push({ type: 'date', size: pS * 0.86, gap: pS * 0.85 });
-    if (sig) items.push({ type: 'text', text: sig, size: sS, weight: 400, gap: sS * 1.05 });
+    if (sig) items.push({ type: 'text', text: sig, size: sS, weight: 400, gap: sS * 1.05, color: dateInk });
 
     // 末尾不加速度间距，避免整块被抬高
     var total = 0;
@@ -1093,14 +1109,13 @@
           });
         }
       } else if (it.type === 'date') {
-        var dimInk = ink === '#ffffff' ? 'rgba(255,255,255,.72)' : 'rgba(20,20,20,.66)';
         drawT(ctx, date, g.iw / 2, cy, {
-          size: it.size, weight: 400, color: dimInk, align: 'center',
+          size: it.size, weight: 400, color: dateInk, align: 'center',
           shadow: shadow, shadowBlur: it.size * 0.5, shadowY: it.size * 0.05
         });
       } else {
         drawT(ctx, it.text, g.iw / 2, cy, {
-          size: it.size, weight: it.weight, color: ink, align: 'center',
+          size: it.size, weight: it.weight, color: it.color || ink, align: 'center',
           shadow: shadow, shadowBlur: it.size * 0.5, shadowY: it.size * 0.05
         });
       }
@@ -1111,7 +1126,9 @@
 
   function drawCorner(ctx, g) {
     var f = state.fields, ui = state.ui;
-    var ink = autoInk();
+    var ink = overlayInk();
+    var nameInk = overlayTone(ink, ui.nameTone);
+    var sub = overlayTone(ink, ui.dateTone);
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.55)' : null;
     var name = deviceName();
     var params = paramsLine();
@@ -1163,7 +1180,9 @@
 
   function drawWordmark(ctx, g) {
     var f = state.fields, ui = state.ui;
-    var ink = autoInk();
+    var ink = overlayInk();
+    var nameInk = overlayTone(ink, ui.nameTone);
+    var dateInk = overlayTone(ink, ui.dateTone);
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.5)' : null;
     var word = (f.brand || '').toUpperCase();
     var model = stripBrand(f.model, f.brand);
@@ -1177,10 +1196,10 @@
     var sp = wS * 0.16;
 
     var lines = [];
-    if (word) lines.push({ text: word, size: wS, weight: 700, spacing: sp, gap: wS * 0.30 });
+    if (word) lines.push({ text: word, size: wS, weight: 700, spacing: sp, gap: wS * 0.30, color: nameInk });
     if (model) lines.push({ text: model, size: mS, weight: 500, gap: mS * 0.55 });
-    if (sig) lines.push({ text: sig, size: sS, weight: 400, gap: sS * 0.5 });
-    if (date) lines.push({ text: date, size: dS, weight: 400, gap: dS * 0.3 });
+    if (sig) lines.push({ text: sig, size: sS, weight: 400, gap: sS * 0.5, color: dateInk });
+    if (date) lines.push({ text: date, size: dS, weight: 400, gap: dS * 0.3, color: dateInk });
 
     var total = 0;
     lines.forEach(function (l) { total += l.size * 1.15 + l.gap; });
@@ -1190,7 +1209,7 @@
       var h = l.size * 1.15;
       drawT(ctx, l.text, g.iw / 2, y + h / 2, {
         size: fitText(ctx, l.text, l.size, l.weight, g.iw * 0.9, l.spacing || 0),
-        weight: l.weight, color: ink, align: 'center', spacing: l.spacing || 0,
+        weight: l.weight, color: l.color || ink, align: 'center', spacing: l.spacing || 0,
         shadow: shadow, shadowBlur: l.size * 0.5, shadowY: l.size * 0.04
       });
       y += h + l.gap;
@@ -1237,7 +1256,7 @@
       drawLogo(ctx, x, y1, logoH, 'left');
       x += lw + s1 * 0.5;
     }
-    if (name) drawT(ctx, name, x, y1, { size: s1, weight: 500, color: ink });
+    if (name) drawT(ctx, name, x, y1, { size: s1, weight: 500, color: nameInk });
     if (params) drawT(ctx, params, right, y1, { size: s2, weight: 500, color: ink, align: 'right' });
 
     var l2 = date;
