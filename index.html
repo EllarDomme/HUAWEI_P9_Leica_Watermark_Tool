@@ -389,10 +389,7 @@
       <div class="row">
         <span>文字黑度</span>
         <select id="barInk" class="sel" style="width:140px">
-          <option value="default">默认黑</option>
-          <option value="pure">纯黑</option>
           <option value="ink">墨黑</option>
-          <option value="rich">深墨黑</option>
           <option value="gray">深灰</option>
         </select>
       </div>
@@ -493,7 +490,7 @@
   };
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'default', nameTone: 38, dateTone: 48,
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 38, dateTone: 48,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -1891,19 +1888,11 @@
   });
   $('#resetLook').addEventListener('click', function () {
     var d = clone(DEF_UI);
-    state.ui.bar = d.bar;
-    state.ui.border = d.border;
-    state.ui.logoScale = d.logoScale;
-    state.ui.font = d.font;
-    state.ui.ink = d.ink;
-    state.ui.pos = d.pos;
-    state.ui.logoGap = d.logoGap;
-    state.ui.barAlign = d.barAlign;
-    state.ui.timeMode = d.timeMode;
-    state.ui.fontFamily = d.fontFamily;
-    state.ui.pinPreview = d.pinPreview;
-    state.ui.previewVh = d.previewVh;
-    applyPin();
+    Object.keys(d).forEach(function (k) {
+      // 预览固定/高度属于布局，不跟着外观重置
+      if (k === 'pinPreview' || k === 'previewVh') return;
+      state.ui[k] = d[k];
+    });
     applyPreviewH();
     syncControls();
     scheduleRender();
