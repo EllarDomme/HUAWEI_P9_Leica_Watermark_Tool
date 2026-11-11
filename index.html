@@ -394,12 +394,12 @@
         </select>
       </div>
       <div class="sld">
-        <div class="sld-top"><span>设备名深浅</span><output id="nameToneOut">38%</output></div>
-        <input type="range" id="nameTone" min="10" max="100" step="2" value="38">
+        <div class="sld-top"><span>设备名深浅</span><output id="nameToneOut">100%</output></div>
+        <input type="range" id="nameTone" min="10" max="100" step="2" value="100">
       </div>
       <div class="sld">
-        <div class="sld-top"><span>日期深浅</span><output id="dateToneOut">48%</output></div>
-        <input type="range" id="dateTone" min="10" max="100" step="2" value="48">
+        <div class="sld-top"><span>日期深浅</span><output id="dateToneOut">100%</output></div>
+        <input type="range" id="dateTone" min="10" max="100" step="2" value="100">
       </div>
       <div class="row">
         <span>字体</span>
@@ -490,7 +490,7 @@
   };
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 38, dateTone: 48,
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -945,9 +945,9 @@
     var f = state.fields, ui = state.ui;
     var darkTpl = g.tpl === 'dark';
     var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
-    var ink = darkTpl ? '#f2f2f2' : (BAR_INK[ui.barInk] || BAR_INK.default);
-    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 1 - (ui.nameTone == null ? 38 : ui.nameTone) / 100);
-    var sub = darkTpl ? 'rgba(242,242,242,.52)' : mixHex(ink, barBg, 1 - (ui.dateTone == null ? 48 : ui.dateTone) / 100);
+    var ink = darkTpl ? (ui.barInk === 'gray' ? '#cfcfd4' : '#f2f2f2') : (BAR_INK[ui.barInk] || BAR_INK.default);
+    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 1 - (ui.nameTone == null ? 100 : ui.nameTone) / 100);
+    var sub = darkTpl ? 'rgba(242,242,242,.52)' : mixHex(ink, barBg, 1 - (ui.dateTone == null ? 100 : ui.dateTone) / 100);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
     var padL = g.bd + g.iw * 0.021;
@@ -1723,13 +1723,20 @@
     });
     $('#pinSw').checked = state.ui.pinPreview !== false;
     $('#fontFamily').value = state.ui.fontFamily || 'default';
-    if ($('#barInk')) $('#barInk').value = state.ui.barInk || 'default';
+    if ($('#barInk')) {
+      var inkSel = $('#barInk');
+      var darkTplNow = state.template === 'dark';
+      var optInk = inkSel.querySelector('option[value="ink"]');
+      if (optInk) { optInk.hidden = darkTplNow; optInk.disabled = darkTplNow; }
+      if (darkTplNow && state.ui.barInk === 'ink') state.ui.barInk = 'gray';
+      inkSel.value = state.ui.barInk || 'ink';
+    }
     if ($('#nameTone')) {
-      $('#nameTone').value = state.ui.nameTone == null ? 38 : state.ui.nameTone;
+      $('#nameTone').value = state.ui.nameTone == null ? 100 : state.ui.nameTone;
       $('#nameToneOut').textContent = ($('#nameTone').value) + '%';
     }
     if ($('#dateTone')) {
-      $('#dateTone').value = state.ui.dateTone == null ? 48 : state.ui.dateTone;
+      $('#dateTone').value = state.ui.dateTone == null ? 100 : state.ui.dateTone;
       $('#dateToneOut').textContent = ($('#dateTone').value) + '%';
     }
     $('#timeMode').value = state.ui.timeMode || 'date';
@@ -1831,7 +1838,17 @@
   $('#dateTone').addEventListener('change', function () { autosave(); });
 
   $('#barInk').addEventListener('change', function (e) {
-    state.ui.barInk = e.target.value;
+    var v = e.target.value;
+    state.ui.barInk = v;
+    // 墨黑 = 全部实黑；深灰 = 名字/日期按常规灰度
+    if (v === 'ink') {
+      state.ui.nameTone = 100;
+      state.ui.dateTone = 100;
+    } else {
+      state.ui.nameTone = 38;
+      state.ui.dateTone = 48;
+    }
+    syncControls();
     scheduleRender();
     autosave();
   });
