@@ -2163,6 +2163,7 @@
   var zs = { scale: 1, tx: 0, ty: 0, fitW: 0, fitH: 0 };
   var zPts = new Map();
   var zStart = null;
+  var zWasMulti = false, zMoved = 0;
 
   function zApply() {
     zStage.style.transform = 'translate3d(' + zs.tx + 'px,' + zs.ty + 'px,0) scale(' + zs.scale + ')';
@@ -2237,6 +2238,8 @@
       zView.setPointerCapture(e.pointerId);
       zView.classList.add('grabbing');
       zPts.set(e.pointerId, zLocal(e));
+      if (zPts.size >= 2) zWasMulti = true;
+      zMoved = 0;
       zStart = { scale: zs.scale, tx: zs.tx, ty: zs.ty, dist: zDist(), mid: zMid() };
       zTapHint();
     });
@@ -2256,6 +2259,7 @@
           zStart.mid = m;
         }
       } else if (zStart) {
+        zMoved += Math.abs(now.x - prev.x) + Math.abs(now.y - prev.y);
         zs.tx += now.x - prev.x;
         zs.ty += now.y - prev.y;
         zClamp(); zApply();
@@ -2285,6 +2289,13 @@
     var lastTap = 0;
     zView.addEventListener('pointerup', function (e) {
       if (e.pointerType !== 'touch' && e.pointerType !== 'mouse') return;
+      // 双指手势结束、或拖动过，都不算双击
+      if (zWasMulti || zMoved > 12) {
+        lastTap = 0;
+        zWasMulti = false;
+        zMoved = 0;
+        return;
+      }
       var now = Date.now();
       if (now - lastTap < 280 && zPts.size === 0) {
         var p = zLocal(e);
