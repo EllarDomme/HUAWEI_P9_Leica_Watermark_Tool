@@ -12,7 +12,7 @@ import html
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 
-FONT = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Smooth.ttf"
+FONT = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf"
 OUT = r"D:\P9徕卡水印工具\开发文件\vector"
 
 GROUPS = [
