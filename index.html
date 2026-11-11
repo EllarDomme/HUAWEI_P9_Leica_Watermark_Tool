@@ -1774,7 +1774,10 @@
     if ($('#barInk')) {
       var inkSel = $('#barInk');
       var row = inkSel.closest('.row');
-      var whiteInk = state.ui.ink === 'white';
+      // 白条/黑条的文字在固定底色上，白字设置不影响它们
+      var tplUsesInk = ['center', 'corner', 'wordmark', 'film'].indexOf(state.template) >= 0;
+      var whiteInk = tplUsesInk && (state.ui.ink === 'white' ||
+        (state.ui.ink === 'auto' && state.bitmap && autoInk() === '#ffffff'));
       if (row) row.style.display = whiteInk ? 'none' : '';
       var darkTplNow = state.template === 'dark';
       var optInk = inkSel.querySelector('option[value="ink"]');
