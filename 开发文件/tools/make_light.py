@@ -16,7 +16,7 @@ from fontTools.pens.cu2quPen import Cu2QuPen
 SRC = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf"
 DST = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Regular.ttf"
 
-INSET = 26          # 内缩量（units，em=1000）
+INSET = 12          # 内缩量（units，em=1000）
 FAMILY = 'HWLeica Light'
 
 

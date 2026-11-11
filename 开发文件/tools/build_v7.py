@@ -19,7 +19,7 @@ from build_full3 import vectorize, CAP, EM, XH
 
 SRC = r"E:\DeskTop\字符抠图高清版\chars"
 OUT = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf"
-GAP = 0.17
+GAP = 0.245
 DESC = set('gjpqy')
 SYMBOLS = {
     'backslash': '\\', 'colon': ':', 'dash': '-', 'dot': '.', 'doublequote': '"',
@@ -124,7 +124,7 @@ def main():
     tpen = TTGlyphPen(None)
     glyphs['space'] = tpen.glyph()
     order.append('space')
-    adv['space'] = int(CAP * 0.30)
+    adv['space'] = int(CAP * 0.32)
 
     chars = [c for c, _ in files]
     fb = FontBuilder(EM, isTTF=True)
