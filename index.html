@@ -1206,6 +1206,9 @@
     var sp = wS * 0.16;
 
     var lines = [];
+    var logoH = g.iw * 0.046 * ui.logoScale * ui.font;
+    var lw = logoW(logoH);
+    if (lw > 0) lines.push({ logo: true, size: logoH, gap: logoH * 0.34 });
     if (word) lines.push({ text: word, size: wS, weight: 700, spacing: sp, gap: wS * 0.30, color: nameInk });
     if (model) lines.push({ text: model, size: mS, weight: 500, gap: mS * 0.55, color: nameInk });
     if (sig) lines.push({ text: sig, size: sS, weight: 400, gap: sS * 0.5, color: dateInk });
@@ -1217,6 +1220,11 @@
 
     lines.forEach(function (l) {
       var h = l.size * 1.15;
+      if (l.logo) {
+        drawLogo(ctx, g.iw / 2, y + h / 2, logoH, 'center');
+        y += h + l.gap;
+        return;
+      }
       drawT(ctx, l.text, g.iw / 2, y + h / 2, {
         size: fitText(ctx, l.text, l.size, l.weight, g.iw * 0.9, l.spacing || 0),
         weight: l.weight, color: l.color || ink, align: 'center', spacing: l.spacing || 0,
