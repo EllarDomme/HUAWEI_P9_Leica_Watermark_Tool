@@ -1823,6 +1823,8 @@
     if ($('#dateTone')) {
       $('#dateTone').value = state.ui.dateTone == null ? 100 : state.ui.dateTone;
       $('#dateToneOut').textContent = ($('#dateTone').value) + '%';
+      var dRow = $('#dateTone').closest('.sld');
+      if (dRow) dRow.style.display = state.ui.showDate ? '' : 'none';
     }
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
@@ -1953,6 +1955,7 @@
   });
   $('#dateSw').addEventListener('change', function (e) {
     state.ui.showDate = e.target.checked;
+    syncControls();
     scheduleRender();
     autosave();
   });
