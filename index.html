@@ -400,7 +400,7 @@
           <option value="hwlight">徕卡复刻 · 细体</option>
         </select>
       </div>
-      <div class="sld" data-show="center">
+      <div class="sld" data-show="center,wordmark">
         <div class="sld-top"><span>垂直位置</span><output id="posOut">75</output></div>
         <input type="range" id="pos" min="0" max="100" step="5" value="75">
       </div>
@@ -1083,7 +1083,7 @@
 
     var items = [];
     var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
-    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * (100 - gapV) / 100 });
+    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * gapV / 100 });
     if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013, color: nameInk });
     if (params) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
     if (date) items.push({ type: 'date', size: pS * 0.86, gap: pS * 0.85 });
@@ -1096,7 +1096,8 @@
     });
 
     var pos = (typeof ui.pos === 'number') ? ui.pos : 75;
-    var bottom = g.ih - g.iw * (0.037 - (pos - 50) / 50 * 0.025);
+    // 数值越大越靠上
+    var bottom = g.ih - g.iw * (0.037 + (pos - 50) / 50 * 0.025);
     var y = bottom - total;
 
     items.forEach(function (it, i) {
@@ -1213,7 +1214,9 @@
 
     var total = 0;
     lines.forEach(function (l) { total += l.size * 1.15 + l.gap; });
-    var y = g.ih - g.ih * 0.055 - total;
+    var wp = (typeof ui.pos === 'number' ? ui.pos : 75);
+    var marginB = g.ih * (0.055 + (wp - 50) / 50 * 0.045);
+    var y = g.ih - marginB - total;
 
     lines.forEach(function (l) {
       var h = l.size * 1.15;
