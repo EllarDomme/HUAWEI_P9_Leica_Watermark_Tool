@@ -8,7 +8,8 @@ $build = Join-Path $root 'build'
 $env:JAVA_HOME = 'C:\Users\34684\.jdks\ms-17.0.19'
 $env:PATH = "$env:JAVA_HOME\bin;$bt;$env:PATH"
 
-Copy-Item (Join-Path $root '..\index.html') (Join-Path $root 'assets\index.html') -Force`r`nif (Test-Path $build) { Remove-Item $build -Recurse -Force }
+Copy-Item (Join-Path $root '..\index.html') (Join-Path $root 'assets\index.html') -Force
+if (Test-Path $build) { Remove-Item $build -Recurse -Force }
 New-Item -ItemType Directory -Path $build, "$build\classes", "$build\dex" -Force | Out-Null
 
 Write-Host '[1/6] aapt2 link'

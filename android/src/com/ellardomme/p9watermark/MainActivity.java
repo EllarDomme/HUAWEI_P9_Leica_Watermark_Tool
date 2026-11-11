@@ -123,9 +123,10 @@ public class MainActivity extends Activity {
                 byte[] data = Base64.decode(base64, Base64.DEFAULT);
                 File dir;
                 if (Build.VERSION.SDK_INT >= 29) {
-                    dir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "P9Watermark");
+                    dir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "P9水印");
                 } else {
-                    dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "P9Watermark");
+                    // Android 9 及以下：直接放在内部存储根目录，文件管理一眼能看到
+                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
                 }
                 if (!dir.exists()) dir.mkdirs();
                 File f = new File(dir, name);
