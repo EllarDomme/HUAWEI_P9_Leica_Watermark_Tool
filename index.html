@@ -554,10 +554,10 @@
     }
     var sq = fontSqueeze();
     if (sq === 1) {
-      ctx.fillText(text, x, y);
+      ctx.fillText(text, Math.round(x), Math.round(y));
     } else {
       ctx.save();
-      ctx.translate(x, y);
+      ctx.translate(Math.round(x), Math.round(y));
       ctx.scale(sq, 1);
       ctx.fillText(text, 0, 0);
       ctx.restore();
@@ -1261,9 +1261,14 @@
   var STEP_FACTOR = [1, 0.75, 0.55];
 
   function previewWidth() {
-    var base = window.innerWidth <= 900 ? 800 : 1600;
+    // 按画布在页面上的实际显示尺寸 × 设备像素比来定，避免被放大发虚
+    var cssW = el.preview && el.preview.clientWidth ? el.preview.clientWidth : (window.innerWidth <= 900 ? 360 : 900);
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    var base = Math.round(cssW * dpr);
     var cap = Math.round(base * STEP_FACTOR[qualityStep]);
     if (dragging) cap = Math.min(cap, 640);
+    var maxCap = window.innerWidth <= 900 ? 1600 : 2400;
+    cap = Math.min(cap, maxCap);
     return Math.min(state.bitmap ? state.bitmap.width : cap, cap);
   }
 
@@ -1342,6 +1347,12 @@
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   })();
+
+  var resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { scheduleRender(); }, 180);
+  });
 
   function scheduleRender() {
     if (!state.bitmap) return;
