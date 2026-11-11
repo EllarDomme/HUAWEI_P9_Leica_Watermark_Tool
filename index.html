@@ -408,7 +408,7 @@
         <div class="sld-top"><span>图标间距</span><output id="gapOut">53</output></div>
         <input type="range" id="logoGap" min="0" max="100" step="5" value="53">
       </div>
-      <div class="row" data-show="center,corner,wordmark">
+      <div class="row" data-show="center,corner,wordmark,dark">
         <span>文字颜色</span>
         <div class="seg" id="inkSeg">
           <button data-v="auto" class="on">自动</button>
@@ -490,7 +490,7 @@
   };
   var DEF_UI = {
     bar: 0.078, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100,
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, toneKey: '', tones: null,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -954,6 +954,31 @@
     gray: '#3a3a3d'
   };
 
+  /* 白 / 墨黑 / 深灰 三套深浅各自独立保存 */
+  function toneKeyNow() {
+    var ui = state.ui;
+    if (ui.ink === 'white') return 'white';
+    if (ui.ink === 'black') return ui.barInk === 'gray' ? 'gray' : 'ink';
+    if (ui.ink === 'auto' && state.bitmap && autoInk() === '#ffffff') return 'white';
+    return ui.barInk === 'gray' ? 'gray' : 'ink';
+  }
+
+  function switchTone(init) {
+    var ui = state.ui;
+    if (!ui.tones) ui.tones = {};
+    if (!init && ui.toneKey && ui.tones[ui.toneKey]) {
+      ui.tones[ui.toneKey].name = ui.nameTone;
+      ui.tones[ui.toneKey].date = ui.dateTone;
+    }
+    var key = toneKeyNow();
+    ui.toneKey = key;
+    if (!ui.tones[key]) {
+      ui.tones[key] = { name: key === 'gray' ? 38 : 100, date: key === 'gray' ? 48 : 100 };
+    }
+    ui.nameTone = ui.tones[key].name;
+    ui.dateTone = ui.tones[key].date;
+  }
+
   function mixHex(a, b, t) {
     function rgb(h) {
       h = h.replace('#', '');
@@ -969,7 +994,7 @@
     var f = state.fields, ui = state.ui;
     var darkTpl = g.tpl === 'dark';
     var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
-    var ink = darkTpl ? (ui.barInk === 'gray' ? '#cfcfd4' : '#f2f2f2') : (BAR_INK[ui.barInk] || BAR_INK.default);
+    var ink = darkTpl ? (ui.ink === 'black' ? (BAR_INK[ui.barInk] || '#0A0A0B') : (ui.barInk === 'gray' ? '#cfcfd4' : '#f2f2f2')) : (BAR_INK[ui.barInk] || BAR_INK.default);
     var nameInk = darkTpl ? toneColor(ui.nameTone, true) : toneColor(ui.nameTone, false);
     var sub = darkTpl ? toneColor(ui.dateTone, true) : toneColor(ui.dateTone, false);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
@@ -1647,6 +1672,7 @@
         state.file = blob;
         state.fileName = name || 'image';
         applyExif(exif);
+        switchTone(false);
         el.empty.hidden = true;
         el.preview.hidden = false;
         el.meta.hidden = false;
@@ -1744,6 +1770,8 @@
   }
 
   function syncControls() {
+    if (!state.ui.tones) switchTone(true);
+    else if (state.ui.toneKey !== toneKeyNow()) switchTone(false);
     $$('[data-f]').forEach(function (input) {
       input.value = state.fields[input.dataset.f] || '';
     });
@@ -1896,15 +1924,9 @@
 
   $('#barInk').addEventListener('change', function (e) {
     var v = e.target.value;
+    switchTone(false);
     state.ui.barInk = v;
-    // 墨黑 = 全部实黑；深灰 = 名字/日期按常规灰度
-    if (v === 'ink') {
-      state.ui.nameTone = 100;
-      state.ui.dateTone = 100;
-    } else {
-      state.ui.nameTone = 38;
-      state.ui.dateTone = 48;
-    }
+    switchTone(false);
     syncControls();
     scheduleRender();
     autosave();
@@ -2019,6 +2041,7 @@
     if (!b) return;
     state.ui.ink = b.dataset.v;
     Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === b); });
+    switchTone(false);
     syncControls();
     scheduleRender(); autosave();
   });
