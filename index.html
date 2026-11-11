@@ -928,11 +928,21 @@
     return (typeof BAR_INK !== 'undefined' && BAR_INK[state.ui.barInk]) || '#141414';
   }
 
+  var TONE_LIGHT = '#9A9A9E';     // 最浅：中灰（不会到白）
+  var TONE_GRAY = '#3A3A3D';      // 深灰模式的底
+  var TONE_BLACK = '#0A0A0B';     // 墨黑模式的底
+
+  // 深浅滑块：0 = 中灰，100 = 当前文字黑度的最深色
+  function toneColor(tone, darkTpl) {
+    var t = Math.max(0, Math.min(100, tone == null ? 100 : tone)) / 100;
+    if (darkTpl) return 'rgba(255,255,255,' + (0.5 + 0.5 * t).toFixed(3) + ')';
+    var deep = state.ui.barInk === 'gray' ? TONE_GRAY : TONE_BLACK;
+    return mixHex(TONE_LIGHT, deep, t);
+  }
+
   function overlayTone(baseInk, tone) {
-    var t = (tone == null ? 100 : tone) / 100;
-    if (baseInk === '#ffffff') return 'rgba(255,255,255,' + (0.35 + 0.65 * t).toFixed(3) + ')';
-    var c = (typeof BAR_INK !== 'undefined' && BAR_INK[state.ui.barInk]) || '#141414';
-    return mixHex(c, '#ffffff', 1 - t);
+    if (baseInk === '#ffffff') return toneColor(tone, true);
+    return toneColor(tone, false);
   }
 
   /* ================= 5. 模板绘制 ================= */
@@ -960,8 +970,8 @@
     var darkTpl = g.tpl === 'dark';
     var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
     var ink = darkTpl ? (ui.barInk === 'gray' ? '#cfcfd4' : '#f2f2f2') : (BAR_INK[ui.barInk] || BAR_INK.default);
-    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 1 - (ui.nameTone == null ? 100 : ui.nameTone) / 100);
-    var sub = darkTpl ? 'rgba(242,242,242,.52)' : mixHex(ink, barBg, 1 - (ui.dateTone == null ? 100 : ui.dateTone) / 100);
+    var nameInk = darkTpl ? toneColor(ui.nameTone, true) : toneColor(ui.nameTone, false);
+    var sub = darkTpl ? toneColor(ui.dateTone, true) : toneColor(ui.dateTone, false);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
     var padL = g.bd + g.iw * 0.021;
@@ -1756,6 +1766,9 @@
     $('#fontFamily').value = state.ui.fontFamily || 'default';
     if ($('#barInk')) {
       var inkSel = $('#barInk');
+      var row = inkSel.closest('.row');
+      var whiteInk = state.ui.ink === 'white';
+      if (row) row.style.display = whiteInk ? 'none' : '';
       var darkTplNow = state.template === 'dark';
       var optInk = inkSel.querySelector('option[value="ink"]');
       if (optInk) { optInk.hidden = darkTplNow; optInk.disabled = darkTplNow; }
