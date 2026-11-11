@@ -396,6 +396,10 @@
           <option value="gray">深灰</option>
         </select>
       </div>
+      <div class="sld">
+        <div class="sld-top"><span>设备名深浅</span><output id="nameToneOut">38%</output></div>
+        <input type="range" id="nameTone" min="10" max="100" step="2" value="38">
+      </div>
       <div class="row">
         <span>字体</span>
         <select id="fontFamily" class="sel" style="width:140px">
@@ -485,7 +489,7 @@
   };
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'default',
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'default', nameTone: 38,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -941,7 +945,7 @@
     var darkTpl = g.tpl === 'dark';
     var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
     var ink = darkTpl ? '#f2f2f2' : (BAR_INK[ui.barInk] || BAR_INK.default);
-    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 0.62);
+    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 1 - (ui.nameTone == null ? 38 : ui.nameTone) / 100);
     var sub = darkTpl ? 'rgba(242,242,242,.52)' : mixHex(ink, barBg, 0.52);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
@@ -1719,6 +1723,10 @@
     $('#pinSw').checked = state.ui.pinPreview !== false;
     $('#fontFamily').value = state.ui.fontFamily || 'default';
     if ($('#barInk')) $('#barInk').value = state.ui.barInk || 'default';
+    if ($('#nameTone')) {
+      $('#nameTone').value = state.ui.nameTone == null ? 38 : state.ui.nameTone;
+      $('#nameToneOut').textContent = ($('#nameTone').value) + '%';
+    }
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
     syncQuality();
@@ -1802,6 +1810,13 @@
       autosave();
     });
   });
+
+  $('#nameTone').addEventListener('input', function (e) {
+    state.ui.nameTone = parseInt(e.target.value, 10);
+    $('#nameToneOut').textContent = e.target.value + '%';
+    scheduleRender();
+  });
+  $('#nameTone').addEventListener('change', function () { autosave(); });
 
   $('#barInk').addEventListener('change', function (e) {
     state.ui.barInk = e.target.value;
