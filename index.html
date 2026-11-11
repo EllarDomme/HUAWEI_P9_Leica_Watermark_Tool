@@ -387,6 +387,16 @@
         <label class="switch"><input type="checkbox" id="pinSw" checked><span></span></label>
       </div>
       <div class="row">
+        <span>文字黑度</span>
+        <select id="barInk" class="sel" style="width:140px">
+          <option value="default">默认黑</option>
+          <option value="pure">纯黑</option>
+          <option value="ink">墨黑</option>
+          <option value="rich">深墨黑</option>
+          <option value="gray">深灰</option>
+        </select>
+      </div>
+      <div class="row">
         <span>字体</span>
         <select id="fontFamily" class="sel" style="width:140px">
           <option value="default">默认（系统）</option>
@@ -475,7 +485,7 @@
   };
   var DEF_UI = {
     bar: 0.084, border: 0.019, barAlign: 'center', logoScale: 1, font: 1, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto',
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'default',
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -907,12 +917,32 @@
   }
 
   /* ================= 5. 模板绘制 ================= */
+  var BAR_INK = {
+    default: '#141414',
+    pure: '#000000',
+    ink: '#0a0a0b',
+    rich: '#050506',
+    gray: '#3a3a3d'
+  };
+
+  function mixHex(a, b, t) {
+    function rgb(h) {
+      h = h.replace('#', '');
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    var A = rgb(a), B = rgb(b), o = [];
+    for (var i = 0; i < 3; i++) o.push(Math.round(A[i] + (B[i] - A[i]) * t));
+    return 'rgb(' + o[0] + ',' + o[1] + ',' + o[2] + ')';
+  }
+
   function drawBar(ctx, g) {
     var f = state.fields, ui = state.ui;
     var darkTpl = g.tpl === 'dark';
-    var ink = darkTpl ? '#f2f2f2' : '#141414';
-    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : '#7d7d7d';
-    var sub = darkTpl ? 'rgba(242,242,242,.52)' : 'rgba(20,20,20,.48)';
+    var barBg = darkTpl ? '#0c0c0d' : '#ffffff';
+    var ink = darkTpl ? '#f2f2f2' : (BAR_INK[ui.barInk] || BAR_INK.default);
+    var nameInk = darkTpl ? 'rgba(242,242,242,.62)' : mixHex(ink, barBg, 0.62);
+    var sub = darkTpl ? 'rgba(242,242,242,.52)' : mixHex(ink, barBg, 0.52);
     var line = darkTpl ? 'rgba(255,255,255,.28)' : 'rgba(20,20,20,.26)';
 
     var padL = g.bd + g.iw * 0.021;
@@ -1688,6 +1718,7 @@
     });
     $('#pinSw').checked = state.ui.pinPreview !== false;
     $('#fontFamily').value = state.ui.fontFamily || 'default';
+    if ($('#barInk')) $('#barInk').value = state.ui.barInk || 'default';
     $('#timeMode').value = state.ui.timeMode || 'date';
     $('#format').value = state.ui.format;
     syncQuality();
@@ -1770,6 +1801,12 @@
       scheduleRender();
       autosave();
     });
+  });
+
+  $('#barInk').addEventListener('change', function (e) {
+    state.ui.barInk = e.target.value;
+    scheduleRender();
+    autosave();
   });
 
   $('#fontFamily').addEventListener('change', function (e) {
