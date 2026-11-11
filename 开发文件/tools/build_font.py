@@ -219,7 +219,7 @@ def harvest(image, text_rows, crops, tag, x_off=0):
             if not len(xs):
                 continue
             crop = crop[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-            if crop.shape[0] < 0.6 * cap_h:
+            if crop.shape[0] < 0.12 * cap_h:
                 continue
             if ch.isupper():
                 caps.append(int(crop.shape[0]))
@@ -236,7 +236,7 @@ def trace(crop, cap_px):
         return [], 0.0
     out = []
     for i, c in enumerate(contours):
-        if cv2.contourArea(c) < 12:
+        if cv2.contourArea(c) < 3:
             continue
         approx = cv2.approxPolyDP(c, EPS, True)
         pts = [(float(p[0][0]) * k + CAP * GAP * 0.5, (h - float(p[0][1])) * k) for p in approx]
