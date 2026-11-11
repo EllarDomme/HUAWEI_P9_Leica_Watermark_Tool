@@ -935,7 +935,7 @@
   // 深浅滑块：0 = 中灰，100 = 当前文字黑度的最深色
   function toneColor(tone, darkTpl) {
     var t = Math.max(0, Math.min(100, tone == null ? 100 : tone)) / 100;
-    if (darkTpl) return mixHex('#8A8A8E', '#FFFFFF', t);
+    if (darkTpl) return 'rgba(255,255,255,' + (0.35 + 0.65 * t).toFixed(3) + ')';
     var deep = state.ui.barInk === 'gray' ? TONE_GRAY : TONE_BLACK;
     return mixHex(TONE_LIGHT, deep, t);
   }
@@ -1207,7 +1207,7 @@
 
     var lines = [];
     if (word) lines.push({ text: word, size: wS, weight: 700, spacing: sp, gap: wS * 0.30, color: nameInk });
-    if (model) lines.push({ text: model, size: mS, weight: 500, gap: mS * 0.55 });
+    if (model) lines.push({ text: model, size: mS, weight: 500, gap: mS * 0.55, color: nameInk });
     if (sig) lines.push({ text: sig, size: sS, weight: 400, gap: sS * 0.5, color: dateInk });
     if (date) lines.push({ text: date, size: dS, weight: 400, gap: dS * 0.3, color: dateInk });
 
@@ -1756,6 +1756,8 @@
     setRange('#bar', state.ui.bar * 100, '#barOut', '%', 1);
     setRange('#border', state.ui.border * 100, '#borderOut', '%', 1);
     setRange('#logo', state.ui.logoScale * 100, '#logoOut', '%', 0);
+    var logoRow = $('#logo') ? $('#logo').closest('.sld') : null;
+    if (logoRow) logoRow.style.display = state.logoKind ? '' : 'none';
     setRange('#font', state.ui.font * 100, '#fontOut', '%', 0);
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
