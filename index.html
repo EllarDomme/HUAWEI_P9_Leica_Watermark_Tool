@@ -432,8 +432,8 @@
         <input type="range" id="dateTone" min="10" max="100" step="2" value="100">
       </div>
       <div class="sld">
-        <div class="sld-top"><span>参数深浅</span><output id="paramToneOut">100%</output></div>
-        <input type="range" id="paramTone" min="10" max="100" step="2" value="100">
+        <div class="sld-top"><span>参数深浅</span><output id="paramToneOut">88%</output></div>
+        <input type="range" id="paramTone" min="10" max="100" step="2" value="88">
       </div>
     </section>
 
@@ -494,7 +494,7 @@
   };
   var DEF_UI = {
     bar: 0.082, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
-    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, paramTone: 100, toneKey: '', tones: null,
+    showDate: true, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, paramTone: 88, toneKey: '', tones: null,
     format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
   };
 
@@ -981,12 +981,13 @@
       ui.tones[key] = {
         name: key === 'gray' ? 38 : 100,
         date: key === 'gray' ? 48 : 100,
-        param: 100
+        // 参数是加粗的，同数值会更黑，所以默认比另外两个低一点
+        param: key === 'gray' ? 60 : 88
       };
     }
     ui.nameTone = ui.tones[key].name;
     ui.dateTone = ui.tones[key].date;
-    ui.paramTone = ui.tones[key].param == null ? 100 : ui.tones[key].param;
+    ui.paramTone = ui.tones[key].param == null ? 88 : ui.tones[key].param;
   }
 
   function mixHex(a, b, t) {
@@ -1842,7 +1843,7 @@
       if (dRow) dRow.style.display = state.ui.showDate ? '' : 'none';
     }
     if ($('#paramTone')) {
-      $('#paramTone').value = state.ui.paramTone == null ? 100 : state.ui.paramTone;
+      $('#paramTone').value = state.ui.paramTone == null ? 88 : state.ui.paramTone;
       $('#paramToneOut').textContent = ($('#paramTone').value) + '%';
     }
     $('#timeMode').value = state.ui.timeMode || 'date';
