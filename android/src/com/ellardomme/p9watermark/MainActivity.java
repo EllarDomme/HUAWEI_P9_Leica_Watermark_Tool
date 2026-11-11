@@ -53,7 +53,17 @@ public class MainActivity extends Activity {
                 try {
                     Intent it = new Intent(Intent.ACTION_GET_CONTENT);
                     it.addCategory(Intent.CATEGORY_OPENABLE);
-                    it.setType("image/*");
+                    // 按页面声明的 accept 决定文件类型：导入预设时要能选 json
+                    String[] accepts = params.getAcceptTypes();
+                    boolean allowAny = false;
+                    if (accepts != null) {
+                        for (String a : accepts) {
+                            if (a == null) continue;
+                            String l = a.toLowerCase();
+                            if (l.contains("json") || l.contains("application")) { allowAny = true; break; }
+                        }
+                    }
+                    it.setType(allowAny ? "*/*" : "image/*");
                     startActivityForResult(Intent.createChooser(it, "选择照片"), REQ_FILE);
                     return true;
                 } catch (Exception e) {
@@ -135,6 +145,27 @@ public class MainActivity extends Activity {
                 fos.close();
                 MediaScannerConnection.scanFile(ctx, new String[]{ f.getAbsolutePath() },
                         new String[]{ mime == null ? "image/jpeg" : mime }, null);
+                return "ok:" + f.getAbsolutePath();
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            }
+        }
+
+        @JavascriptInterface
+        public String saveFile(String base64, String name, String mime) {
+            try {
+                byte[] data = Base64.decode(base64, Base64.DEFAULT);
+                File dir;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    dir = new File(ctx.getExternalFilesDir(null), "P9水印");
+                } else {
+                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
+                }
+                if (!dir.exists()) dir.mkdirs();
+                File f = new File(dir, name);
+                FileOutputStream fos = new FileOutputStream(f);
+                fos.write(data);
+                fos.close();
                 return "ok:" + f.getAbsolutePath();
             } catch (Exception e) {
                 return "err:" + e.getMessage();

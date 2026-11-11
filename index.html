@@ -1514,7 +1514,20 @@
 
   function presetExport() {
     if (!state.presets.length) { toast('还没有预设'); return; }
-    var blob = new Blob([JSON.stringify({ version: 1, presets: state.presets }, null, 2)], { type: 'application/json' });
+    var json = JSON.stringify({ version: 1, presets: state.presets }, null, 2);
+
+    // APK 里交给原生写文件，绕开浏览器的 blob 下载限制
+    if (window.AndroidBridge && window.AndroidBridge.saveFile) {
+      try {
+        var b64 = btoa(unescape(encodeURIComponent(json)));
+        var rr = AndroidBridge.saveFile(b64, 'exif-watermark-presets.json', 'application/json');
+        if (String(rr).indexOf('ok:') === 0) toast('已导出到内部存储/P9水印/', 5000);
+        else toast('导出失败：' + rr, 6000);
+      } catch (e) { toast('导出失败：' + e.message, 6000); }
+      return;
+    }
+
+    var blob = new Blob([json], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'exif-watermark-presets.json';
