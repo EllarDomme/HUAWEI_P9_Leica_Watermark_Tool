@@ -149,6 +149,8 @@
   .zoombox{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:220;display:flex;flex-direction:column}
   .zbar{display:flex;flex-wrap:wrap;align-items:center;padding:10px 12px;background:#101013;border-bottom:1px solid var(--line)}
   .zbar .btn{height:34px;padding:0 12px;font-size:13px;margin:0 8px 0 0}
+  .zbar .zsbtn{min-width:38px;padding:0 8px;font-variant-numeric:tabular-nums}
+  .zbar .zpct{min-width:58px;color:#e6dcc6}
   .zview{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;background:#000;touch-action:none;cursor:grab}
   .zview.grabbing{cursor:grabbing}
   .zstage{position:absolute;left:0;top:0;width:100%;transform-origin:0 0;will-change:transform}
@@ -2157,13 +2159,14 @@
   var zBox = null, zImg = null, zView = null, activePanel = null;
 
   /* 预览：双指缩放 + 拖动 */
-  var zView, zStage, zImg, zBox, zHint;
+  var zView, zStage, zImg, zBox, zHint, zPct;
   var zs = { scale: 1, tx: 0, ty: 0, fitW: 0, fitH: 0 };
   var zPts = new Map();
   var zStart = null;
 
   function zApply() {
     zStage.style.transform = 'translate3d(' + zs.tx + 'px,' + zs.ty + 'px,0) scale(' + zs.scale + ')';
+    if (zPct) zPct.textContent = Math.round(zs.scale * 100) + '%';
   }
 
   function zClamp() {
@@ -2319,13 +2322,23 @@
       bFit.textContent = '适应屏幕';
       bFit.onclick = zReset;
 
-      var bReal = document.createElement('button');
-      bReal.className = 'btn';
-      bReal.textContent = '原图';
-      bReal.onclick = function () {
-        if (!zImg.naturalWidth) return;
-        zZoomAt(zImg.naturalWidth / zs.fitW / zs.scale, zView.clientWidth / 2, zView.clientHeight / 2);
-      };
+      var bOut = document.createElement('button');
+      bOut.className = 'btn zsbtn';
+      bOut.textContent = '−';
+      bOut.title = '缩小';
+      bOut.onclick = function () { zZoomAt(1 / 1.35, zView.clientWidth / 2, zView.clientHeight / 2); };
+
+      zPct = document.createElement('button');
+      zPct.className = 'btn zsbtn zpct';
+      zPct.textContent = '100%';
+      zPct.title = '点按回到适应屏幕';
+      zPct.onclick = zReset;
+
+      var bIn = document.createElement('button');
+      bIn.className = 'btn zsbtn';
+      bIn.textContent = '+';
+      bIn.title = '放大';
+      bIn.onclick = function () { zZoomAt(1.35, zView.clientWidth / 2, zView.clientHeight / 2); };
 
       var bPick = document.createElement('button');
       bPick.className = 'btn';
@@ -2338,7 +2351,8 @@
       bClose.textContent = '关闭';
       bClose.onclick = closePreview;
 
-      bar.appendChild(bFit); bar.appendChild(bReal);
+      bar.appendChild(bFit);
+      bar.appendChild(bOut); bar.appendChild(zPct); bar.appendChild(bIn);
       bar.appendChild(bPick); bar.appendChild(bClose);
 
       zView = document.createElement('div');
