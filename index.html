@@ -291,11 +291,6 @@
         <button class="mini-btn" id="presetRename">重命名</button>
         <button class="mini-btn danger" id="presetDel">删除</button>
       </div>
-      <div class="btnrow">
-        <button class="mini-btn" id="presetExport">导出备份</button>
-        <button class="mini-btn" id="presetImport">导入备份</button>
-        <input type="file" id="presetFile" accept=".json,application/json" hidden>
-      </div>
     </section>
 
     <section>
@@ -1389,7 +1384,7 @@
       localStorage.setItem(key, JSON.stringify(val));
       return true;
     } catch (e) {
-      toast('本地存储不可用或已满，建议导出备份');
+      toast('本地存储不可用或已满');
       return false;
     }
   }
@@ -1510,53 +1505,6 @@
     p.name = n.trim();
     savePresets();
     toast('已重命名');
-  }
-
-  function presetExport() {
-    if (!state.presets.length) { toast('还没有预设'); return; }
-    var json = JSON.stringify({ version: 1, presets: state.presets }, null, 2);
-
-    // APK 里交给原生写文件，绕开浏览器的 blob 下载限制
-    if (window.AndroidBridge && window.AndroidBridge.saveFile) {
-      try {
-        var b64 = btoa(unescape(encodeURIComponent(json)));
-        var rr = AndroidBridge.saveFile(b64, 'exif-watermark-presets.json', 'application/json');
-        if (String(rr).indexOf('ok:') === 0) toast('已导出到内部存储/P9水印/', 5000);
-        else toast('导出失败：' + rr, 6000);
-      } catch (e) { toast('导出失败：' + e.message, 6000); }
-      return;
-    }
-
-    var blob = new Blob([json], { type: 'application/json' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'exif-watermark-presets.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
-    toast('已导出 ' + state.presets.length + ' 个预设');
-  }
-
-  function presetImport(file) {
-    var reader = new FileReader();
-    reader.onload = function () {
-      try {
-        var data = JSON.parse(reader.result);
-        var list = Array.isArray(data) ? data : (data.presets || []);
-        var n = 0;
-        list.forEach(function (p) {
-          if (!p || !p.data) return;
-          state.presets.push({ id: uid(), name: p.name || '导入预设', data: p.data, createdAt: Date.now() });
-          n++;
-        });
-        savePresets();
-        toast(n ? '已导入 ' + n + ' 个预设' : '文件里没有预设');
-      } catch (e) {
-        toast('导入失败：不是有效的 JSON');
-      }
-    };
-    reader.readAsText(file);
   }
 
   // 预览用的降采样图源：从 12MP 原图直接缩放太慢，先缓存一张 1200px 的
@@ -1954,14 +1902,6 @@
   $('#presetSaveAs').addEventListener('click', function () { presetSave(true); });
   $('#presetRename').addEventListener('click', presetRename);
   $('#presetDel').addEventListener('click', presetDelete);
-  $('#presetExport').addEventListener('click', presetExport);
-  $('#presetImport').addEventListener('click', function () { $('#presetFile').click(); });
-  $('#presetFile').addEventListener('change', function () {
-    var f = this.files && this.files[0];
-    if (f) presetImport(f);
-    this.value = '';
-  });
-
   /* 导出 */
   function canvasBlob(c, type, q) {
     return new Promise(function (resolve) {
