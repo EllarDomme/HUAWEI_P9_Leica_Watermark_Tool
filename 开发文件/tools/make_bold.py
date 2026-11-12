@@ -19,7 +19,7 @@ DST = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Bold.ttf"
 CAP = 700.0
 OFFSET = 11.0          # 每侧外扩，笔画约 +22
 # 斜笔在加粗后视觉上更重，单独少加一点
-DIAG = set('AKMNVWXYZ47')
+DIAG = set('AKMNVWXYZ47B')
 OFFSET_DIAG = 6.0
 
 
