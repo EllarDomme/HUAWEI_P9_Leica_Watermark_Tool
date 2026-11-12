@@ -77,6 +77,8 @@ def main():
         if cp not in bc:
             continue
         g0 = glyf[name]
+        if getattr(g0, 'numberOfContours', 0) > 1:
+            continue          # 有字腔的字不压，避免把字腔挤死
         g0.recalcBounds(glyf)
         b0 = bg[bc[cp]]
         b0.recalcBounds(bg)

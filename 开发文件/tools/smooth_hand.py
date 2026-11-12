@@ -17,7 +17,7 @@ FONTS = [
     r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaHand-Regular.ttf",
     r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaHand-Bold.ttf",
 ]
-R = 6.0     # 磨平半径（单位）
+R = 2.5     # 磨平半径（单位）
 
 
 def offset_path(path, d):
@@ -61,6 +61,8 @@ def main():
             cu = Cu2QuPen(tp, 0.8, reverse_direction=False)
             out.draw(cu)
             g = tp.glyph()
+            if not hasattr(g, 'numberOfContours') or g.numberOfContours == 0:
+                continue          # 磨没了就保留原样
             g.recalcBounds(glyf)
             dy = ref_y - g.yMin
             if abs(dy) > 0.5:
