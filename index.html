@@ -597,7 +597,7 @@
   function setFont(ctx, size, weight) {
     // 字号量化：拖滑块时按 2px，平时小字号 1px、大字号 0.5px
     // —— 字号每变一次，浏览器就要重建一套字形位图，老机器上代价很高
-    var step = sliderBusy ? 2 : (size < 40 ? 1 : 0.5);
+    var step = sliderBusy ? 1.5 : (size < 40 ? 1 : 0.5);
     var sz = Math.max(1, Math.round(size / step) * step);
     ctx.font = (weight || 400) + ' ' + sz + 'px ' + fontStack();
   }
