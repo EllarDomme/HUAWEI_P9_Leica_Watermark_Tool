@@ -595,7 +595,9 @@
   }
 
   function setFont(ctx, size, weight) {
-    ctx.font = (weight || 400) + ' ' + size + 'px ' + fontStack();
+    // 字号量化到 0.5px：避免每一帧都产生新的字号，导致字形缓存反复重建（老机器上很明显）
+    var sz = Math.max(1, Math.round(size * 2) / 2);
+    ctx.font = (weight || 400) + ' ' + sz + 'px ' + fontStack();
   }
 
   function measureAt(ctx, text, size, weight, spacing) {
