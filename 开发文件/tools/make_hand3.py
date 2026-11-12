@@ -25,6 +25,16 @@ SKEW = 0.035      # 横向倾斜
 TRAP = 0.05       # 字母的梯形畸变
 TRAP_DIGIT = 0.075
 TRAP_SYMBOL = 0.10
+# 个别字天生太"正"，单独加大畸变
+OVERRIDE = {
+    '=': (0.18, 0.16, 1.6),
+    '6': (0.14, 0.12, 1.4),
+    '9': (0.14, 0.12, 1.4),
+    '8': (0.12, 0.10, 1.3),
+    '0': (0.12, 0.10, 1.3),
+    '-': (0.18, 0.12, 1.5),
+    '?': (0.14, 0.12, 1.3),
+}
 ADV_JIT = 9.0     # 字距抖动
 
 
@@ -35,7 +45,7 @@ def rng_for(cp):
 def transform_path(path, params):
     x0, y0, x1, y1 = path.bounds
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
-    deg, dy, s, skew, trapx, trapy = params
+    deg, dy, s, skew, trapx, trapy, twist = params
     half_h = max(1.0, (y1 - y0) / 2.0)
     half_w = max(1.0, (x1 - x0) / 2.0)
     a = math.radians(deg)
@@ -51,6 +61,8 @@ def transform_path(path, params):
         fx = 1.0 + trapx * (y / half_h)
         fy = 1.0 + trapy * (x / half_w)
         x, y = x * fx, y * fy
+        # 扭转：让同一方向的平行笔画斜率不同（= 这种最明显）
+        y = y + twist * x * (y / half_h)
         X = m[0] * x + m[2] * y
         Y = m[1] * x + m[3] * y
         return (X + cx, Y + cy + dy)
@@ -79,15 +91,21 @@ def main():
         if ch == ' ':
             continue
         r = rng_for(cp)
-        if ch.isdigit():
-            tp = TRAP_DIGIT
-        elif not ch.isalpha():
-            tp = TRAP_SYMBOL
+        if ch in OVERRIDE:
+            tx, ty, boost = OVERRIDE[ch]
         else:
-            tp = TRAP
-        params = (r.uniform(-TILT, TILT), r.uniform(-DY, DY),
+            if ch.isdigit():
+                tx, ty = TRAP_DIGIT, TRAP_DIGIT
+            elif not ch.isalpha():
+                tx, ty = TRAP_SYMBOL, TRAP_SYMBOL
+            else:
+                tx, ty = TRAP, TRAP
+            boost = 1.0
+        params = (r.uniform(-TILT * boost, TILT * boost), r.uniform(-DY, DY),
                   r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW),
-                  r.uniform(-tp, tp), r.uniform(-tp, tp))
+                  r.uniform(-tx, tx), r.uniform(-ty, ty),
+                  r.uniform(-(0.05 if ch.isalpha() else 0.10),
+                             (0.05 if ch.isalpha() else 0.10)))
         p = pathops.Path()
         gs[name].draw(p.getPen())
         # 笔画本身的粗细也逐字不同（模拟运笔轻重）
