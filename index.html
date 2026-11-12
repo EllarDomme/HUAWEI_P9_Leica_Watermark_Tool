@@ -1582,7 +1582,7 @@
       rafId = 0;
       if (dragging) {
         var nowMs = Date.now();
-        if (nowMs - lastDragRender < 70) return;
+        if (nowMs - lastDragRender < 33) return;
         lastDragRender = nowMs;
       }
       var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
