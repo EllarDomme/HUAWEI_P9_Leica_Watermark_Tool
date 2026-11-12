@@ -271,11 +271,11 @@
     .panel{border-left:none;border-top:1px solid var(--line);order:3;padding:14px 14px 40px;flex:1 1 auto;width:auto}
     .stage-foot{display:none}
 
-    body.pin{height:100%;overflow:hidden}
-    body.pin .app{height:100%;overflow:hidden}
+    body.pin{height:100%;overflow:hidden;overscroll-behavior:none}
+    body.pin .app{height:100%;overflow:hidden;overscroll-behavior:none}
     .stage{flex:0 0 auto;height:var(--pv,42vh);min-height:0;max-height:var(--pv,42vh);padding:8px 12px 14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
     #preview{max-height:calc(var(--pv,42vh) - 26px)}
-    body.pin .panel{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    body.pin .panel{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
   }
 
   /* 预览固定时，"拖入照片"区域要完整居中显示，不被裁切 */
@@ -1528,6 +1528,23 @@
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   })();
+
+  // 固定预览时，除面板以外的区域不允许滚动，避免整页被推走导致预览看不见
+  document.addEventListener('touchmove', function (e) {
+    if (!document.body.classList.contains('pin')) return;
+    var el = e.target;
+    while (el && el !== document.body) {
+      if (el.classList && el.classList.contains('panel')) return;
+      el = el.parentElement;
+    }
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('scroll', function () {
+    if (!document.body.classList.contains('pin')) return;
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    if (y !== 0) window.scrollTo(0, 0);
+  }, { passive: true });
 
   var resizeTimer = 0;
   window.addEventListener('resize', function () {
