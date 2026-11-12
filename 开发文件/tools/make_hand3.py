@@ -18,11 +18,11 @@ from fontTools.ttLib import TTFont
 BASE = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Bold.ttf"
 DST = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaHand-Regular.ttf"
 
-TILT = 1.4        # 最大旋转（度）
-DY = 4.0          # 上下偏移（单位）
-SC = 0.02         # 缩放浮动
-SKEW = 0.02       # 横向倾斜
-ADV_JIT = 4.0     # 字距抖动
+TILT = 3.0        # 最大旋转（度）
+DY = 8.0          # 上下偏移（单位）
+SC = 0.04         # 缩放浮动
+SKEW = 0.035      # 横向倾斜
+ADV_JIT = 9.0     # 字距抖动
 
 
 def rng_for(cp):
@@ -74,6 +74,16 @@ def main():
                   r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW))
         p = pathops.Path()
         gs[name].draw(p.getPen())
+        # 笔画本身的粗细也逐字不同（模拟运笔轻重）
+        dw = r.uniform(-6.0, 6.0)
+        if abs(dw) > 1.0:
+            band = pathops.Path()
+            band.addPath(p)
+            band.stroke(abs(dw) * 2.0, pathops.LineCap.ROUND_CAP, pathops.LineJoin.ROUND_JOIN, 4.0)
+            band.convertConicsToQuads()
+            op = pathops.PathOp.UNION if dw > 0 else pathops.PathOp.DIFFERENCE
+            p = pathops.op(p, band, op, fix_winding=True)
+            p.convertConicsToQuads()
         try:
             out = transform_path(p, params)
         except Exception as e:
