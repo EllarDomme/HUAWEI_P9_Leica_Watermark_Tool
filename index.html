@@ -434,7 +434,7 @@
           <option value="keke">刻字（K刻）</option>
           <option value="hw">徕卡复刻</option>
           <option value="hwlight">徕卡复刻 · 细体</option>
-          <option value="hwhand">徕卡手写体</option>
+          <option value="hwhand">徕卡复刻 · 糙体</option>
         </select>
       </div>
       <div class="sld" data-show="center,wordmark">
@@ -502,7 +502,7 @@
   'use strict';
 
   /* ================= 1. 常量与状态 ================= */
-  // 手写体只有 400 / 700 两档，400 观感更好，参数行也用它
+  // 糙体只有 400 / 700 两档，400 观感更好，参数行也用它
   function paramWeight() {
     return state.ui.fontFamily === 'hwhand' ? 400 : 700;
   }
