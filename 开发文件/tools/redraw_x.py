@@ -14,7 +14,7 @@ from fontTools.ttLib import TTFont
 SRC = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Regular.ttf"
 W = 439.0
 H = 700.0
-T = 88.0           # 笔画宽度（细体，常规约 105，按 0.83 比例）
+T = 72.0           # 笔画宽度（细体，对齐全表中位带宽 81）
 
 
 def bar(p0, p1, t, cap=pathops.LineCap.BUTT_CAP):
