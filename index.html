@@ -271,6 +271,7 @@
     .panel{border-left:none;border-top:1px solid var(--line);order:3;padding:14px 14px 40px;flex:1 1 auto;width:auto}
     .stage-foot{display:none}
 
+    html,body{overscroll-behavior-y:none}
     body.pin{height:100%;overflow:hidden;overscroll-behavior:none}
     body.pin .app{height:100%;overflow:hidden;overscroll-behavior:none}
     .stage{flex:0 0 auto;height:var(--pv,42vh);min-height:0;max-height:var(--pv,42vh);padding:8px 12px 14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
@@ -1529,15 +1530,37 @@
     window.addEventListener('mouseup', up);
   })();
 
-  // 固定预览时，除面板以外的区域不允许滚动，避免整页被推走导致预览看不见
-  document.addEventListener('touchmove', function (e) {
+  // 固定预览时：只有面板能滚，且滚到两端后不再“弹”
+  var __touchY = 0, __touchPanel = null;
+  document.addEventListener('touchstart', function (e) {
     if (!document.body.classList.contains('pin')) return;
+    var t = e.touches && e.touches[0];
+    if (!t) return;
+    __touchY = t.clientY;
     var el = e.target;
+    __touchPanel = null;
     while (el && el !== document.body) {
-      if (el.classList && el.classList.contains('panel')) return;
+      if (el.classList && el.classList.contains('panel')) { __touchPanel = el; break; }
       el = el.parentElement;
     }
-    if (e.cancelable) e.preventDefault();
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function (e) {
+    if (!document.body.classList.contains('pin')) return;
+    var t = e.touches && e.touches[0];
+    if (!t) return;
+    var dy = t.clientY - __touchY;
+
+    if (!__touchPanel) {                 // 面板以外：完全不允许滚
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+    var pn = __touchPanel;
+    var atTop = pn.scrollTop <= 0;
+    var atBottom = pn.scrollTop + pn.clientHeight >= pn.scrollHeight - 1;
+    if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+      if (e.cancelable) e.preventDefault();   // 到头了还继续拉：吃掉，避免回弹
+    }
   }, { passive: false });
 
   window.addEventListener('scroll', function () {
