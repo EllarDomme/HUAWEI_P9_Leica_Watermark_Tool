@@ -18,6 +18,9 @@ SRC = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf"
 DST = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Bold.ttf"
 CAP = 700.0
 OFFSET = 11.0          # 每侧外扩，笔画约 +22
+# 斜笔在加粗后视觉上更重，单独少加一点
+DIAG = set('AKMNVWXYZ47')
+OFFSET_DIAG = 6.0
 
 
 def stroke_of(path, ch, size=1000):
@@ -52,8 +55,9 @@ def main():
             continue
         p = pathops.Path()
         gs[name].draw(p.getPen())
+        d = OFFSET_DIAG if ch in DIAG else OFFSET
         try:
-            out = offset_path(p, OFFSET)
+            out = offset_path(p, d)
         except Exception as e:
             print('  跳过', ch, e)
             continue
@@ -101,7 +105,7 @@ def main():
     hmtx = font['hmtx']
     for cp, name in cmap.items():
         adv, lsb = hmtx[name]
-        hmtx[name] = (int(adv + 2 * OFFSET), lsb)
+        hmtx[name] = (int(adv + 2 * (OFFSET_DIAG if ch in DIAG else OFFSET)), lsb)
 
     font.save(DST)
     print('saved', DST, os.path.getsize(DST) // 1024, 'KB')
