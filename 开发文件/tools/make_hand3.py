@@ -22,7 +22,9 @@ TILT = 3.0        # 最大旋转（度）
 DY = 8.0          # 上下偏移（单位）
 SC = 0.04         # 缩放浮动
 SKEW = 0.035      # 横向倾斜
-TRAP = 0.05       # 梯形畸变：让原本平行的竖笔/横笔略微不平行
+TRAP = 0.05       # 字母的梯形畸变
+TRAP_DIGIT = 0.075
+TRAP_SYMBOL = 0.10
 ADV_JIT = 9.0     # 字距抖动
 
 
@@ -77,9 +79,15 @@ def main():
         if ch == ' ':
             continue
         r = rng_for(cp)
+        if ch.isdigit():
+            tp = TRAP_DIGIT
+        elif not ch.isalpha():
+            tp = TRAP_SYMBOL
+        else:
+            tp = TRAP
         params = (r.uniform(-TILT, TILT), r.uniform(-DY, DY),
                   r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW),
-                  r.uniform(-TRAP, TRAP), r.uniform(-TRAP, TRAP))
+                  r.uniform(-tp, tp), r.uniform(-tp, tp))
         p = pathops.Path()
         gs[name].draw(p.getPen())
         # 笔画本身的粗细也逐字不同（模拟运笔轻重）
