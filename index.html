@@ -142,9 +142,12 @@
   .sld .sld-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
   .sld.is-off{opacity:.42}
   .grabber{display:none}
-  body.pin .grabber{order:2;display:flex;align-items:center;justify-content:center;height:18px;background:var(--panel);border-top:1px solid var(--line);touch-action:none;cursor:ns-resize;flex:0 0 auto}
-  body.pin .grabber span{width:46px;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}
-  body.pin .grabber:active span{background:rgba(255,255,255,.45)}
+  @media (max-width:900px){
+    .grabber{order:2;display:flex;align-items:center;justify-content:center;height:18px;
+      background:var(--panel);border-top:1px solid var(--line);touch-action:none;cursor:ns-resize;flex:0 0 auto}
+    .grabber span{width:46px;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}
+    .grabber:active span{background:rgba(255,255,255,.45)}
+  }
 
   .zoombox{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:220;display:flex;flex-direction:column}
   .zbar{position:relative;display:flex;flex-wrap:wrap;align-items:center;padding:10px 56px 10px 12px;background:#101013;border-bottom:1px solid var(--line)}
@@ -270,20 +273,20 @@
 
     body.pin{height:100%;overflow:hidden}
     body.pin .app{height:100%;overflow:hidden}
-    body.pin .stage{flex:0 0 auto;min-height:0;max-height:var(--pv,42vh);padding:8px 12px 14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
-    body.pin #preview{max-height:calc(var(--pv,42vh) - 8px)}
+    .stage{flex:0 0 auto;height:var(--pv,42vh);min-height:0;max-height:var(--pv,42vh);padding:8px 12px 14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+    #preview{max-height:calc(var(--pv,42vh) - 8px)}
     body.pin .panel{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
   }
 
   /* 预览固定时，"拖入照片"区域要完整居中显示，不被裁切 */
-  body.pin .empty{align-self:center;margin:0 auto;max-height:calc(100% - 6px);overflow:hidden;
+  .stage .empty{align-self:center;margin:0 auto;max-height:calc(100% - 6px);overflow:hidden;
     padding:clamp(10px,2.4vh,38px) clamp(14px,4vw,26px)}
-  body.pin .empty .ico{width:clamp(30px,6vh,52px);height:clamp(30px,6vh,52px);
+  .stage .empty .ico{width:clamp(30px,6vh,52px);height:clamp(30px,6vh,52px);
     margin:0 auto clamp(6px,1.2vh,14px);font-size:clamp(16px,3vh,24px)}
-  body.pin .empty h2{font-size:clamp(12px,1.7vh,15px);margin-bottom:clamp(2px,.8vh,6px)}
-  body.pin .empty p{font-size:clamp(10px,1.4vh,12px)}
-  @media (max-height:620px){ body.pin .empty p{display:none} }
-  @media (max-height:520px){ body.pin .empty .ico{display:none} }
+  .stage .empty h2{font-size:clamp(12px,1.7vh,15px);margin-bottom:clamp(2px,.8vh,6px)}
+  .stage .empty p{font-size:clamp(10px,1.4vh,12px)}
+  @media (max-height:620px){ .stage .empty p{display:none} }
+  @media (max-height:520px){ .stage .empty .ico{display:none} }
 </style>
 </head>
 <body>
@@ -1486,6 +1489,19 @@
     var dragging = false, startY = 0, startV = 42;
     function yOf(e) { return e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY; }
     function down(e) {
+      if (state.ui.pinPreview === false) {
+        // 未固定时拖这条线：自动开启固定，并从当前预览高度起步，位置不跳
+        var st = document.getElementById('stage');
+        var h = st ? st.getBoundingClientRect().height : 0;
+        if (h > 40) {
+          state.ui.previewVh = Math.round(h / window.innerHeight * 1000) / 10;
+          applyPreviewH();
+        }
+        state.ui.pinPreview = true;
+        var sw = document.getElementById('pinSw');
+        if (sw) sw.checked = true;
+        applyPin();
+      }
       dragging = true;
       startY = yOf(e);
       startV = state.ui.previewVh || 42;
