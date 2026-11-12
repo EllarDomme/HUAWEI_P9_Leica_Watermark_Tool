@@ -19,8 +19,7 @@ sys.path.insert(0, r"D:\P9徕卡水印工具\开发文件\tools")
 
 CASES = [
     # (源文件, 输出文件, 家族名, 外扩比例)
-    (r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf",
-     r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Bold.ttf", 'HWLeica', 1.0),
+
     (r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Regular.ttf",
      r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Bold.ttf", 'HWLeica Light', 0.82),
 ]
