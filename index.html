@@ -485,6 +485,11 @@
   'use strict';
 
   /* ================= 1. 常量与状态 ================= */
+  // 手写体只有 400 / 700 两档，400 观感更好，参数行也用它
+  function paramWeight() {
+    return state.ui.fontFamily === 'hwhand' ? 400 : 700;
+  }
+
   var FONT_STACKS = {
     'default': '"Segoe UI","SF Pro Text","PingFang SC","Microsoft YaHei",Arial,sans-serif',
     din: '"Roboto","Bahnschrift","DIN Alternate","PingFang SC","Microsoft YaHei",sans-serif',
@@ -1101,11 +1106,11 @@
         var kk = maxW / pW;
         ps = Math.max(pS * 0.5, ps * kk);
         pgap *= kk;
-        sizes = tokens.map(function (t) { return measureAt(ctx, t, ps, 700); });
+        sizes = tokens.map(function (t) { return measureAt(ctx, t, ps, paramWeight()); });
       }
       var tx = gx;
       tokens.forEach(function (t, i) {
-        drawT(ctx, t, tx, cy, { size: ps, weight: 700, color: paramInk });
+        drawT(ctx, t, tx, cy, { size: ps, weight: paramWeight(), color: paramInk });
         tx += sizes[i] + pgap;
       });
     }
