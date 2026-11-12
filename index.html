@@ -270,14 +270,14 @@
 
     body.pin{height:100%;overflow:hidden}
     body.pin .app{height:100%;overflow:hidden}
-    body.pin .stage{flex:0 0 auto;min-height:0;max-height:var(--pv,42vh);padding:8px 12px 0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+    body.pin .stage{flex:0 0 auto;min-height:0;max-height:var(--pv,42vh);padding:8px 12px 14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
     body.pin #preview{max-height:calc(var(--pv,42vh) - 8px)}
     body.pin .panel{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
   }
 
   /* 预览固定时，"拖入照片"区域要完整居中显示，不被裁切 */
   body.pin .empty{align-self:center;margin:0 auto;max-height:calc(100% - 6px);overflow:hidden;
-    padding:clamp(12px,3vh,44px) clamp(16px,4vw,26px)}
+    padding:clamp(10px,2.4vh,38px) clamp(14px,4vw,26px)}
   body.pin .empty .ico{width:clamp(30px,6vh,52px);height:clamp(30px,6vh,52px);
     margin:0 auto clamp(6px,1.2vh,14px);font-size:clamp(16px,3vh,24px)}
   body.pin .empty h2{font-size:clamp(12px,1.7vh,15px);margin-bottom:clamp(2px,.8vh,6px)}
