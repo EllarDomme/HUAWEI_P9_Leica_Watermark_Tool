@@ -26,10 +26,19 @@ TRAP = 0.05       # 字母的梯形畸变
 TRAP_DIGIT = 0.075
 TRAP_SYMBOL = 0.10
 # 个别字天生太"正"，单独加大畸变
+TWIST_OVERRIDE = {'=': 0.12, '6': 0.12, '9': 0.20, '8': 0.12, '0': 0.12, '-': 0.12}
+
+
+def TWIST_OF(ch):
+    if ch in TWIST_OVERRIDE:
+        return TWIST_OVERRIDE[ch]
+    return 0.05 if ch.isalpha() else 0.10
+
+
 OVERRIDE = {
     '=': (0.18, 0.16, 1.6),
     '6': (0.14, 0.12, 1.4),
-    '9': (0.14, 0.12, 1.4),
+    '9': (0.20, 0.16, 1.9),
     '8': (0.12, 0.10, 1.3),
     '0': (0.12, 0.10, 1.3),
     '-': (0.18, 0.12, 1.5),
@@ -104,8 +113,7 @@ def main():
         params = (r.uniform(-TILT * boost, TILT * boost), r.uniform(-DY, DY),
                   r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW),
                   r.uniform(-tx, tx), r.uniform(-ty, ty),
-                  r.uniform(-(0.05 if ch.isalpha() else 0.10),
-                             (0.05 if ch.isalpha() else 0.10)))
+                  r.uniform(-TWIST_OF(ch), TWIST_OF(ch)))
         p = pathops.Path()
         gs[name].draw(p.getPen())
         # 笔画本身的粗细也逐字不同（模拟运笔轻重）
