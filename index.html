@@ -1250,7 +1250,7 @@
     var dateInk = overlayTone(ink, ui.dateTone);
     var paramInk = overlayTone(ink, ui.paramTone);
     var shadow = ink === '#ffffff' ? 'rgba(0,0,0,.5)' : null;
-    var word = (f.brand || '').toUpperCase();
+    var word = f.brand || '';   // 保留用户输入的大小写
     var model = stripBrand(f.model, f.brand);
     var sig = f.signature || '';
     var date = dateText();
