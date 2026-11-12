@@ -14,15 +14,15 @@ from fontTools.ttLib import TTFont
 SRC = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeicaLight-Regular.ttf"
 W = 439.0
 H = 700.0
-T = 104.0          # 笔画宽度（细体）
+T = 88.0           # 笔画宽度（细体，常规约 105，按 0.83 比例）
 
 
-def bar(p0, p1, t):
+def bar(p0, p1, t, cap=pathops.LineCap.BUTT_CAP):
     p = pathops.Path()
     pen = p.getPen()
     pen.moveTo(p0)
     pen.lineTo(p1)
-    p.stroke(t, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 4.0)
+    p.stroke(t, cap, pathops.LineJoin.ROUND_JOIN, 4.0)
     p.convertConicsToQuads()
     return p
 
@@ -39,10 +39,11 @@ def box(w, h):
 
 
 def build():
-    a = bar((-T, -T * 1.4), (W + T, H + T * 1.4), T)
-    b = bar((-T, H + T * 1.4), (W + T, -T * 1.4), T)
+    # 端点是圆头：圆心放在距角落 r 处，圆正好与字框相切
+    r = T / 2
+    a = bar((r, r), (W - r, H - r), T, pathops.LineCap.ROUND_CAP)
+    b = bar((r, H - r), (W - r, r), T, pathops.LineCap.ROUND_CAP)
     u = pathops.op(a, b, pathops.PathOp.UNION, fix_winding=True)
-    u = pathops.op(u, box(W, H), pathops.PathOp.INTERSECTION, fix_winding=True)
     u.convertConicsToQuads()
     return u
 
