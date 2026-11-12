@@ -309,6 +309,13 @@
 
   <aside class="panel">
 
+    <section class="pin-top">
+      <div class="row pin-row">
+        <span>预览固定</span>
+        <label class="switch"><input type="checkbox" id="pinSw" checked><span></span></label>
+      </div>
+    </section>
+
     <section>
       <div class="sec-row"><h3 class="sec">预设</h3><span class="count" id="presetCount"></span></div>
       <select id="presetSel" class="sel"></select>
@@ -400,10 +407,6 @@
       <div class="sld">
         <div class="sld-top"><span>整体字号</span><output id="fontOut">100%</output></div>
         <input type="range" id="font" min="80" max="130" step="5" value="105">
-      </div>
-      <div class="row pin-row">
-        <span>预览固定</span>
-        <label class="switch"><input type="checkbox" id="pinSw" checked><span></span></label>
       </div>
       <div class="row">
         <span>字体</span>
