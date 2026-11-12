@@ -22,6 +22,7 @@ TILT = 3.0        # 最大旋转（度）
 DY = 8.0          # 上下偏移（单位）
 SC = 0.04         # 缩放浮动
 SKEW = 0.035      # 横向倾斜
+TRAP = 0.05       # 梯形畸变：让原本平行的竖笔/横笔略微不平行
 ADV_JIT = 9.0     # 字距抖动
 
 
@@ -32,7 +33,9 @@ def rng_for(cp):
 def transform_path(path, params):
     x0, y0, x1, y1 = path.bounds
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
-    deg, dy, s, skew = params
+    deg, dy, s, skew, trapx, trapy = params
+    half_h = max(1.0, (y1 - y0) / 2.0)
+    half_w = max(1.0, (x1 - x0) / 2.0)
     a = math.radians(deg)
     ca, sa = math.cos(a) * s, math.sin(a) * s
     # 先缩放/横向倾斜，再绕中心旋转，最后整体平移
@@ -42,6 +45,10 @@ def transform_path(path, params):
 
     def mapped(p):
         x, y = p[0] - cx, p[1] - cy
+        # 梯形畸变：越靠上横向越宽（或越窄），使竖笔不再平行
+        fx = 1.0 + trapx * (y / half_h)
+        fy = 1.0 + trapy * (x / half_w)
+        x, y = x * fx, y * fy
         X = m[0] * x + m[2] * y
         Y = m[1] * x + m[3] * y
         return (X + cx, Y + cy + dy)
@@ -71,7 +78,8 @@ def main():
             continue
         r = rng_for(cp)
         params = (r.uniform(-TILT, TILT), r.uniform(-DY, DY),
-                  r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW))
+                  r.uniform(1 - SC, 1 + SC), r.uniform(-SKEW, SKEW),
+                  r.uniform(-TRAP, TRAP), r.uniform(-TRAP, TRAP))
         p = pathops.Path()
         gs[name].draw(p.getPen())
         # 笔画本身的粗细也逐字不同（模拟运笔轻重）
