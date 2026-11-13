@@ -29,68 +29,73 @@ BG = (247, 244, 238)
 
 CANVAS = 432          # 108dp @4x
 # 内容整体占可见区（72dp=288px）约 60%，四周留白，避免被启动器放大后显得挤
-PHOTO_W = 172         # 43dp
-PHOTO_H = 168         # 42dp
-PHOTO_R = 30   # 与外层遮罩圆弧呼应，避免直角顶圆弧的割裂感
+# 目标：裁切到 72dp 可见区后，照片块约占 46%，与 P9（传统图标、不裁切）观感一致
+PHOTO_W = 200         # 基准按传统图标定：占图标宽度 46%（P9 上看到的效果）
+PHOTO_H = 196
+PHOTO_R = 30
 GAP = 14
 STRIP_H = 34
 LIFT = 4              # 整体上移，抵消底部水印条带来的下坠感
 
-def _content(img, cx, cy):
+def _content(img, cx, cy, k=1.0):
     """在透明画布上画：照片块 + P9 + 水印条（整体以 cx,cy 为中心）"""
     d = ImageDraw.Draw(img)
-    total_h = PHOTO_H + GAP + STRIP_H
+    pw_, ph_ = int(PHOTO_W * k), int(PHOTO_H * k)
+    gap_, strip_ = int(GAP * k), int(STRIP_H * k)
+    rad_ = max(2, int(PHOTO_R * k))
+    total_h = ph_ + gap_ + strip_
     top = cy - total_h // 2 - LIFT
-    px0, py0 = cx - PHOTO_W // 2, top
-    px1, py1 = px0 + PHOTO_W, py0 + PHOTO_H
+    px0, py0 = cx - pw_ // 2, top
+    px1, py1 = px0 + pw_, py0 + ph_
 
     # 照片块：竖向渐变（天光 → 地面），读起来像照片
-    grad = Image.new("RGB", (PHOTO_W, PHOTO_H))
+    grad = Image.new("RGB", (pw_, ph_))
     gd = ImageDraw.Draw(grad)
     a, b = (62, 70, 84), (20, 21, 25)
-    for i in range(PHOTO_H):
-        t = i / (PHOTO_H - 1)
-        gd.line([(0, i), (PHOTO_W, i)],
+    for i in range(ph_):
+        t = i / (ph_ - 1)
+        gd.line([(0, i), (pw_, i)],
                 fill=(int(a[0] + (b[0] - a[0]) * t),
                       int(a[1] + (b[1] - a[1]) * t),
                       int(a[2] + (b[2] - a[2]) * t)))
     mask = Image.new("L", grad.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, PHOTO_W - 1, PHOTO_H - 1], radius=PHOTO_R, fill=255)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, pw_ - 1, ph_ - 1], radius=rad_, fill=255)
     img.paste(grad, (px0, py0), mask)
 
     # P9：画到独立图层，按真实墨迹居中
-    target_w = PHOTO_W * 0.82
-    fsize = int(PHOTO_H * 1.02)
+    target_w = pw_ * 0.82
+    fsize = int(ph_ * 1.02)
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(layer).text((px0, py0), "P9",
                                font=ImageFont.truetype(FONT, fsize),
                                fill=CREAM + (255,), anchor="lt")
     ink = layer.crop(layer.getbbox())
     if ink.width > target_w:
-        k = target_w / ink.width
+        kk = target_w / ink.width
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         ImageDraw.Draw(layer).text((px0, py0), "P9",
-                                   font=ImageFont.truetype(FONT, int(fsize * k)),
+                                   font=ImageFont.truetype(FONT, int(fsize * kk)),
                                    fill=CREAM + (255,), anchor="lt")
         ink = layer.crop(layer.getbbox())
     img.alpha_composite(ink, ((px0 + px1) // 2 - ink.width // 2,
                               (py0 + py1) // 2 - ink.height // 2))
 
     # 水印条：两行文字示意 + 红点
-    strip_cy = py1 + GAP + STRIP_H // 2
-    bar_w = int(PHOTO_W * 0.46)
-    d.rounded_rectangle([px0, strip_cy - 10, px0 + bar_w, strip_cy - 3],
-                        radius=6, fill=INK + (255,))
-    d.rounded_rectangle([px0, strip_cy + 3, px0 + int(bar_w * 0.66), strip_cy + 9],
-                        radius=3, fill=GRAY + (255,))
-    r = 13
+    strip_cy = py1 + gap_ + strip_ // 2
+    bar_w = int(pw_ * 0.44)
+    d.rounded_rectangle([px0, strip_cy - int(8 * k) - 1, px0 + bar_w, strip_cy - int(2 * k)],
+                        radius=max(2, int(5 * k)), fill=INK + (255,))
+    d.rounded_rectangle([px0, strip_cy + int(2 * k) + 1, px0 + int(bar_w * 0.66), strip_cy + int(7 * k) + 1],
+                        radius=max(1, int(3 * k)), fill=GRAY + (255,))
+    r = max(6, int(15 * k))
     dx = px1 - r
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
 
-def foreground(size):
+def foreground(size, k=0.66):
+    """自适应前景：内容按 0.66 缩放，裁到 72dp 可见区后与 P9 观感一致"""
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    _content(img, CANVAS // 2, CANVAS // 2)
+    _content(img, CANVAS // 2, CANVAS // 2, k)
     if size != CANVAS:
         img = img.resize((size, size), Image.LANCZOS)
     return img
@@ -102,7 +107,7 @@ def legacy(size):
     d = ImageDraw.Draw(big)
     d.rounded_rectangle([0, 0, CANVAS * ss - 1, CANVAS * ss - 1],
                         radius=int(CANVAS * ss * 0.22), fill=BG + (255,))
-    fg = foreground(CANVAS).resize((CANVAS * ss, CANVAS * ss), Image.LANCZOS)
+    fg = foreground(CANVAS, 1.0).resize((CANVAS * ss, CANVAS * ss), Image.LANCZOS)
     big.alpha_composite(fg)
     return big.resize((size, size), Image.LANCZOS)
 
