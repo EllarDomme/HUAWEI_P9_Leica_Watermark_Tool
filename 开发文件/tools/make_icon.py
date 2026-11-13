@@ -28,26 +28,21 @@ GRAY = (126, 122, 116)
 BG = (247, 244, 238)
 
 CANVAS = 432          # 108dp @4x
-PHOTO_W = 200         # 50dp
-PHOTO_H = 196         # 49dp
-GAP = 16
-STRIP_H = 38
+# 内容整体占可见区（72dp=288px）约 60%，四周留白，避免被启动器放大后显得挤
+PHOTO_W = 172         # 43dp
+PHOTO_H = 168         # 42dp
+PHOTO_R = 10
+GAP = 14
+STRIP_H = 34
+LIFT = 4              # 整体上移，抵消底部水印条带来的下坠感
 
 def _content(img, cx, cy):
     """在透明画布上画：照片块 + P9 + 水印条（整体以 cx,cy 为中心）"""
     d = ImageDraw.Draw(img)
     total_h = PHOTO_H + GAP + STRIP_H
-    top = cy - total_h // 2
+    top = cy - total_h // 2 - LIFT
     px0, py0 = cx - PHOTO_W // 2, top
     px1, py1 = px0 + PHOTO_W, py0 + PHOTO_H
-
-    # 照片块下加一层柔和阴影，看起来像一张摊在纸上的照片
-    from PIL import ImageFilter
-    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).rounded_rectangle(
-        [px0, py0 + 5, px1, py1 + 5], radius=8, fill=(0, 0, 0, 46))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(7))
-    img.alpha_composite(shadow)
 
     # 照片块：竖向渐变（天光 → 地面），读起来像照片
     grad = Image.new("RGB", (PHOTO_W, PHOTO_H))
@@ -60,11 +55,11 @@ def _content(img, cx, cy):
                       int(a[1] + (b[1] - a[1]) * t),
                       int(a[2] + (b[2] - a[2]) * t)))
     mask = Image.new("L", grad.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, PHOTO_W - 1, PHOTO_H - 1], radius=6, fill=255)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, PHOTO_W - 1, PHOTO_H - 1], radius=PHOTO_R, fill=255)
     img.paste(grad, (px0, py0), mask)
 
     # P9：画到独立图层，按真实墨迹居中
-    target_w = PHOTO_W * 0.86
+    target_w = PHOTO_W * 0.82
     fsize = int(PHOTO_H * 1.02)
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(layer).text((px0, py0), "P9",
@@ -84,11 +79,11 @@ def _content(img, cx, cy):
     # 水印条：两行文字示意 + 红点
     strip_cy = py1 + GAP + STRIP_H // 2
     bar_w = int(PHOTO_W * 0.46)
-    d.rounded_rectangle([px0, strip_cy - 15, px0 + bar_w, strip_cy - 5],
-                        radius=5, fill=INK + (255,))
-    d.rounded_rectangle([px0, strip_cy + 3, px0 + int(bar_w * 0.66), strip_cy + 11],
-                        radius=4, fill=GRAY + (255,))
-    r = 15
+    d.rounded_rectangle([px0, strip_cy - 10, px0 + bar_w, strip_cy - 3],
+                        radius=4, fill=INK + (255,))
+    d.rounded_rectangle([px0, strip_cy + 3, px0 + int(bar_w * 0.66), strip_cy + 9],
+                        radius=3, fill=GRAY + (255,))
+    r = 13
     dx = px1 - r
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
