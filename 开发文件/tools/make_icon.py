@@ -63,23 +63,27 @@ def draw_card(img, cx, cy, k=1.0):
     box = layer.getbbox()
     ink = layer.crop(box)
     if ink.width > target_w:                      # 按宽度回收
-        k = target_w / ink.width
+        kk = target_w / ink.width                 # 注意：不要覆盖外层 k（那是整体缩放）
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         ImageDraw.Draw(layer).text((px0, py0), "P9",
-                                   font=ImageFont.truetype(FONT, int(fsize * k)),
+                                   font=ImageFont.truetype(FONT, int(fsize * kk)),
                                    fill=CREAM + (255,), anchor="lt")
         ink = layer.crop(layer.getbbox())
     img.alpha_composite(ink, ((px0 + px1) // 2 - ink.width // 2,
                               (py0 + py1) // 2 - ink.height // 2))
-    # 底部水印条
+    # 底部水印条：所有尺寸都随 k 缩放，否则缩小后红点会顶到文字行上
     strip_cy = (py1 + y1) // 2
-    # 两行“文字”示意（设备名 + 参数），比单条更像水印而不是按钮
-    d.rounded_rectangle([x0 + 24, strip_cy - 15, x0 + 24 + 96, strip_cy - 5],
-                        radius=5, fill=INK + (255,))
-    d.rounded_rectangle([x0 + 24, strip_cy + 3, x0 + 24 + 64, strip_cy + 11],
-                        radius=4, fill=(126, 122, 116, 255))
-    r = 15
-    dx = x1 - 38
+    sx = x0 + int(24 * k)              # 文字行左边距
+    l1 = int(96 * k)                   # 第一行长度
+    l2 = int(64 * k)                   # 第二行长度
+    t1a, t1b = int(15 * k), int(5 * k)
+    t2a, t2b = int(3 * k), int(11 * k)
+    d.rounded_rectangle([sx, strip_cy - t1a, sx + l1, strip_cy - t1b],
+                        radius=max(2, int(5 * k)), fill=INK + (255,))
+    d.rounded_rectangle([sx, strip_cy + t2a, sx + l2, strip_cy + t2b],
+                        radius=max(1, int(4 * k)), fill=(126, 122, 116, 255))
+    r = max(5, int(15 * k))
+    dx = x1 - int(38 * k)
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
 
