@@ -290,16 +290,23 @@
   @media (max-height:520px){ .stage .empty .ico{display:none} }
 
   /* 使用须知 / 关于 */
-  .nw-mask{position:fixed;inset:0;z-index:60;background:rgba(8,8,10,.72);display:flex;
-    align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+  /* 注意：老 WebView（Chrome 60 及以下）不支持 inset / min()，这里用传统写法 */
+  .nw-mask{position:fixed;top:0;right:0;bottom:0;left:0;z-index:60;
+    background:rgba(8,8,10,.72);display:-webkit-box;display:-webkit-flex;display:flex;
+    -webkit-box-align:center;-webkit-align-items:center;align-items:center;
+    -webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;padding:20px}
   .nw-mask[hidden]{display:none}
-  .nw-card{width:min(460px,100%);background:#18181c;border:1px solid #2e2e36;border-radius:16px;
-    padding:22px;color:#e9e6df;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .nw-card{width:460px;max-width:100%;background:#18181c;border:1px solid #2e2e36;border-radius:16px;
+    padding:22px;color:#e9e6df;box-shadow:0 24px 60px rgba(0,0,0,.5);
+    max-height:90%;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .nw-card h3{margin:0 0 12px;font-size:16px;font-weight:600}
   .nw-card p{margin:0 0 10px;font-size:13px;line-height:1.7;color:#c9c6bf}
   .nw-card b{color:#f3f0ea}
   .nw-actions{display:flex;justify-content:flex-end;margin-top:14px}
   .nw-foot{margin:14px 0 0!important;font-size:11px;color:#7e7b74;line-height:1.6;word-break:break-all}
+  .linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;color:#9a978f;
+    text-decoration:underline;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .linkbtn:active{color:#f3f0ea}
 </style>
 </head>
 <body>
@@ -502,7 +509,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><a href="#" id="aboutLink" style="color:#9a978f;text-decoration:underline">关于本工具</a> · v<span id="verText">1.0.67</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.68</span></p>
     </section>
   </aside>
 </div>
