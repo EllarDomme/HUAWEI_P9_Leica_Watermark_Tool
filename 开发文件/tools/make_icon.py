@@ -29,15 +29,17 @@ PHOTO_H = 208
 CORNER = 5   # 接近相纸直角，避免像游戏机
 
 
-def draw_card(img, cx, cy):
-    """在透明画布上画拍立得卡片"""
+def draw_card(img, cx, cy, k=1.0):
+    """在透明画布上画拍立得卡片；k<1 时整体缩小（给自适应图标留裁切余量）"""
     d = ImageDraw.Draw(img)
-    x0, y0 = cx - CARD_W // 2, cy - CARD_H // 2
-    x1, y1 = x0 + CARD_W, y0 + CARD_H
-    d.rounded_rectangle([x0, y0, x1, y1], radius=CORNER, fill=CARD + (255,))
+    cw, ch, ph = int(CARD_W * k), int(CARD_H * k), int(PHOTO_H * k)
+    pad = max(3, int(12 * k))
+    x0, y0 = cx - cw // 2, cy - ch // 2
+    x1, y1 = x0 + cw, y0 + ch
+    d.rounded_rectangle([x0, y0, x1, y1], radius=max(2, int(CORNER * k)), fill=CARD + (255,))
     # 照片区
-    px0, py0 = x0 + 12, y0 + 12
-    px1, py1 = x1 - 12, y0 + 12 + PHOTO_H
+    px0, py0 = x0 + pad, y0 + pad
+    px1, py1 = x1 - pad, y0 + pad + ph
     grad = Image.new("RGB", (max(1, px1 - px0), max(1, py1 - py0)))
     gd = ImageDraw.Draw(grad)
     top, bot = (58, 64, 76), (21, 22, 26)
@@ -53,7 +55,7 @@ def draw_card(img, cx, cy):
     # P9：先画到独立图层，按真实墨迹包围盒居中（字体侧边距/上下留白都不对称）
     # 字号控制在墨迹宽度约为照片区 86%，留出呼吸感又不显小
     target_w = (px1 - px0) * 0.86
-    fsize = int(PHOTO_H * 1.05)
+    fsize = int(ph * 1.05)
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(layer).text((px0, py0), "P9",
                                font=ImageFont.truetype(FONT, fsize),
@@ -81,9 +83,14 @@ def draw_card(img, cx, cy):
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
 
-def foreground(size):
+# 自适应前景缩放：裁切窗口只有 288px（72dp），要让卡片四周留出与 P9 相同的白边
+# （P9 传统图标上卡片占宽 59%，即两侧各留 20.6%），换算到 288 窗口即 k≈0.66
+ADAPTIVE_K = 0.66
+
+
+def foreground(size, k=ADAPTIVE_K):
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    draw_card(img, CANVAS // 2, CANVAS // 2)
+    draw_card(img, CANVAS // 2, CANVAS // 2, k)
     if size != CANVAS:
         img = img.resize((size, size), Image.LANCZOS)
     return img
@@ -96,7 +103,7 @@ def legacy(size):
     d = ImageDraw.Draw(big)
     d.rounded_rectangle([0, 0, CANVAS * ss - 1, CANVAS * ss - 1],
                         radius=int(CANVAS * ss * 0.22), fill=BG + (255,))
-    fg = foreground(CANVAS).resize((CANVAS * ss, CANVAS * ss), Image.LANCZOS)
+    fg = foreground(CANVAS, 1.0).resize((CANVAS * ss, CANVAS * ss), Image.LANCZOS)
     big.alpha_composite(fg)
     return big.resize((size, size), Image.LANCZOS)
 
