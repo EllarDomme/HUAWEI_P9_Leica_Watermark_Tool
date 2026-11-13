@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.87</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.88</span></p>
     </section>
   </aside>
 </div>
@@ -1895,50 +1895,53 @@
     });
   }
 
-  /* 解码并转正；内存不足时逐级缩小重试 */
+  /* 解码并转正：缩放与旋转在同一张目标画布上完成，峰值内存只多一张目标图 */
+  function orientationTransform(x, o, w, h) {
+    switch (o) {
+      case 2: x.transform(-1, 0, 0, 1, w, 0); break;
+      case 3: x.transform(-1, 0, 0, -1, w, h); break;
+      case 4: x.transform(1, 0, 0, -1, 0, h); break;
+      case 5: x.transform(0, 1, 1, 0, 0, 0); break;
+      case 6: x.transform(0, 1, -1, 0, h, 0); break;
+      case 7: x.transform(0, -1, -1, 0, h, w); break;
+      case 8: x.transform(0, -1, 1, 0, 0, w); break;
+    }
+  }
+
+  function decodeFitted(blob, maxSide, orientation) {
+    return createBitmapViaImg(blob).then(function (img) {
+      var w = img.naturalWidth || img.width;
+      var h = img.naturalHeight || img.height;
+      if (!w || !h) throw new Error('尺寸为 0');
+      var m = Math.max(w, h);
+      var k = (maxSide && m > maxSide) ? maxSide / m : 1;
+      var dw = Math.max(1, Math.round(w * k));
+      var dh = Math.max(1, Math.round(h * k));
+      var swap = orientation >= 5 && orientation <= 8;
+      var c = makeCanvas(swap ? dh : dw, swap ? dw : dh);
+      var x = c.getContext('2d');
+      if (!x) throw new Error('画布创建失败');
+      orientationTransform(x, orientation, dw, dh);
+      x.drawImage(img, 0, 0, dw, dh);
+      return c;
+    });
+  }
+
+  /* 逐级降档：原始 → 3000 → 2000，最后一级仍失败才报错 */
   function decodeWithFallback(blob, orientation) {
-    var sizes = [0, 3200, 2000];        // 0 = 原始尺寸
+    var sizes = [0, 3000, 2000];
     var i = 0;
     function attempt() {
       var maxSide = sizes[i++];
-      return decodeSized(blob, maxSide).then(function (bmp) {
-        return normalizeOrientation(bmp, orientation);
-      }).catch(function (err) {
+      return decodeFitted(blob, maxSide, orientation).catch(function (err) {
         if (i < sizes.length) {
-          console.warn('解码失败，缩小到 ' + sizes[i] + 'px 重试', err);
+          console.warn('解码失败，改用 ' + sizes[i] + 'px 重试', err);
           return attempt();
         }
         throw err;
       });
     }
     return attempt();
-  }
-
-  function decodeSized(blob, maxSide) {
-    if (!maxSide) return createBitmap(blob);
-    // 支持的浏览器可以在解码阶段直接缩放，省内存
-    if (window.createImageBitmap) {
-      return createImageBitmap(blob, { imageOrientation: 'none' }).then(function (bmp) {
-        var m = Math.max(bmp.width, bmp.height);
-        if (m <= maxSide) return bmp;
-        var k = maxSide / m;
-        var c = makeCanvas(Math.max(1, Math.round(bmp.width * k)), Math.max(1, Math.round(bmp.height * k)));
-        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-        return c;
-      }).catch(function () { return decodeSizedViaImg(blob, maxSide); });
-    }
-    return decodeSizedViaImg(blob, maxSide);
-  }
-
-  function decodeSizedViaImg(blob, maxSide) {
-    return createBitmapViaImg(blob).then(function (img) {
-      var m = Math.max(img.width, img.height);
-      if (m <= maxSide) return img;
-      var k = maxSide / m;
-      var c = makeCanvas(Math.max(1, Math.round(img.width * k)), Math.max(1, Math.round(img.height * k)));
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      return c;
-    });
   }
 
   function createBitmap(blob) {
