@@ -509,7 +509,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.84</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.85</span></p>
     </section>
   </aside>
 </div>
@@ -1850,9 +1850,10 @@
       return;
     }
     readArrayBuffer(blob).then(function (buf) {
-      var exif = parseExif(buf);
-      return createBitmap(blob).then(function (bmp) {
-        bmp = normalizeOrientation(bmp, exif.orientation);
+      var exif = {};
+      try { exif = parseExif(buf) || {}; } catch (e) { console.warn('EXIF 解析失败，按无 EXIF 处理', e); }
+      // 逐级降档：先按原始尺寸试，失败（多半是老机型内存不够）再缩小重试
+      return decodeWithFallback(blob, exif.orientation).then(function (bmp) {
         state.bitmap = bmp;
         state.previewSrc = null;
         state.file = blob;
@@ -1871,7 +1872,53 @@
       });
     }).catch(function (e) {
       console.error(e);
-      toast('这张图打不开，换一张试试');
+      toast('这张图打不开：可能是尺寸太大或格式不支持，先裁剪或换一张试试', 6000);
+    });
+  }
+
+  /* 解码并转正；内存不足时逐级缩小重试 */
+  function decodeWithFallback(blob, orientation) {
+    var sizes = [0, 3200, 2000];        // 0 = 原始尺寸
+    var i = 0;
+    function attempt() {
+      var maxSide = sizes[i++];
+      return decodeSized(blob, maxSide).then(function (bmp) {
+        return normalizeOrientation(bmp, orientation);
+      }).catch(function (err) {
+        if (i < sizes.length) {
+          console.warn('解码失败，缩小到 ' + sizes[i] + 'px 重试', err);
+          return attempt();
+        }
+        throw err;
+      });
+    }
+    return attempt();
+  }
+
+  function decodeSized(blob, maxSide) {
+    if (!maxSide) return createBitmap(blob);
+    // 支持的浏览器可以在解码阶段直接缩放，省内存
+    if (window.createImageBitmap) {
+      return createImageBitmap(blob, { imageOrientation: 'none' }).then(function (bmp) {
+        var m = Math.max(bmp.width, bmp.height);
+        if (m <= maxSide) return bmp;
+        var k = maxSide / m;
+        var c = makeCanvas(Math.max(1, Math.round(bmp.width * k)), Math.max(1, Math.round(bmp.height * k)));
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        return c;
+      }).catch(function () { return decodeSizedViaImg(blob, maxSide); });
+    }
+    return decodeSizedViaImg(blob, maxSide);
+  }
+
+  function decodeSizedViaImg(blob, maxSide) {
+    return createBitmapViaImg(blob).then(function (img) {
+      var m = Math.max(img.width, img.height);
+      if (m <= maxSide) return img;
+      var k = maxSide / m;
+      var c = makeCanvas(Math.max(1, Math.round(img.width * k)), Math.max(1, Math.round(img.height * k)));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      return c;
     });
   }
 
