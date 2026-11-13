@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.86</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.87</span></p>
     </section>
   </aside>
 </div>
@@ -2371,6 +2371,34 @@
     });
   }
 
+  /* 分块写入原生，避免超大 base64 字符串 */
+  function saveChunked(blob, name, type) {
+    var CHUNK = 512 * 1024;                 // 每块 512KB（base64 后约 683KB）
+    var start = AndroidBridge.beginSave(name, type);
+    if (String(start).indexOf('ok') !== 0) { toast('保存失败：' + start, 6000); return; }
+    var offset = 0;
+    function next() {
+      if (offset >= blob.size) {
+        var end = AndroidBridge.endSave(type);
+        if (String(end).indexOf('ok:') === 0) toast('已保存到相册：' + name, 5000);
+        else toast('保存失败：' + end, 6000);
+        return;
+      }
+      var slice = blob.slice(offset, offset + CHUNK);
+      offset += CHUNK;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var b64 = String(fr.result).split(',')[1];
+        var r = AndroidBridge.appendChunk(b64);
+        if (String(r).indexOf('ok') === 0) setTimeout(next, 0);
+        else toast('保存失败：' + r, 6000);
+      };
+      fr.onerror = function () { toast('保存失败：读取数据出错', 6000); };
+      fr.readAsDataURL(slice);
+    }
+    next();
+  }
+
   function blobToPng(blob) {
     return new Promise(function (resolve) {
       try {
@@ -2796,6 +2824,10 @@
           // 在 APK 里：交给原生写入相册，不经过浏览器下载器
           if (window.AndroidBridge && window.AndroidBridge.saveImage) {
             try {
+              // 分块传给原生：大图一次性传 base64 容易内存不足
+              if (AndroidBridge.beginSave) {
+                return saveChunked(blob, name, type);
+              }
               var fr = new FileReader();
               fr.onload = function () {
                 var b64 = String(fr.result).split(',')[1];

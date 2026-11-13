@@ -172,6 +172,57 @@ public class MainActivity extends Activity {
             }
         }
 
+        /* 大图分块写入：避免一次性传几十 MB 的 base64 字符串导致内存不足 */
+        private File chunkFile = null;
+        private FileOutputStream chunkOut = null;
+
+        @JavascriptInterface
+        public String beginSave(String name, String mime) {
+            try {
+                File dir;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    dir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "P9水印");
+                } else {
+                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
+                }
+                if (!dir.exists()) dir.mkdirs();
+                chunkFile = new File(dir, name);
+                chunkOut = new FileOutputStream(chunkFile);
+                return "ok";
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            }
+        }
+
+        @JavascriptInterface
+        public String appendChunk(String base64) {
+            try {
+                if (chunkOut == null) return "err:未开始";
+                byte[] data = Base64.decode(base64, Base64.DEFAULT);
+                chunkOut.write(data);
+                return "ok";
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            }
+        }
+
+        @JavascriptInterface
+        public String endSave(String mime) {
+            try {
+                if (chunkOut == null) return "err:未开始";
+                chunkOut.flush();
+                chunkOut.close();
+                chunkOut = null;
+                MediaScannerConnection.scanFile(ctx, new String[]{ chunkFile.getAbsolutePath() },
+                        new String[]{ mime == null ? "image/jpeg" : mime }, null);
+                return "ok:" + chunkFile.getAbsolutePath();
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            } finally {
+                chunkOut = null;
+            }
+        }
+
         @JavascriptInterface
         public String ping() { return "pong"; }
     }
