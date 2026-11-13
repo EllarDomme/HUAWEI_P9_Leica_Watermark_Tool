@@ -10,7 +10,7 @@
 | **网页版（index.html）** | 电脑上处理、或临时用 | 双击即开，离线可用，不需要安装 |
 
 > **下载 APK**（二选一）
-> · 蓝奏云（国内直连）：<https://wwbao.lanzouq.com/is61t4ftx9fg> 提取码 `huh8`
+> · 蓝奏云（国内直连）：<https://wwbao.lanzouq.com/iniEz4fufuni> 提取码 `h4tq`
 > · GitHub Releases：[最新版](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（v1.0.80，625KB，Android 5.0+）
 > **在线试用**：<https://ellardomme.github.io/HUAWEI_P9_Leica_Watermark_Tool/>
 
@@ -30,7 +30,7 @@
 ## 在手机上用（推荐）
 
 1. 下载安装包，二选一：
-   - **蓝奏云**（国内更快）：<https://wwbao.lanzouq.com/is61t4ftx9fg>，提取码 `huh8`
+   - **蓝奏云**（国内更快）：<https://wwbao.lanzouq.com/iniEz4fufuni>，提取码 `h4tq`
    - **GitHub**：[Releases](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest) 里的 `P9Watermark-vX.Y.Z.apk`
 2. 点安装；系统提示「未知来源」时允许一次（只有首次需要）
 3. 打开 App → 选照片 → 调模板和文字 → 导出
