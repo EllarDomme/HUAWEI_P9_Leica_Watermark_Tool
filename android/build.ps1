@@ -16,6 +16,14 @@ $html = [System.IO.File]::ReadAllText($htmlPath)
 $shim = "function demoAuto(){ return readStore(STORE_AUTO); }`n  function demoBoot(){}`n  function demoApply(){}"
 $html = [regex]::Replace($html, '(?s)/\*__DEV_START__\*/.*?/\*__DEV_END__\*/', $shim)
 if ($html -match '__DEMO|__setDemo') { throw 'demo hooks still present' }
+
+# 版本号同步：把页面里的 verText 换成 manifest 的 versionName
+$verMatch = [regex]::Match($html, 'android:versionName="([^"]+)"')
+if ($verMatch.Success) {
+  $ver = $verMatch.Groups[1].Value
+  $html = [regex]::Replace($html, '(?s)(<span id="verText">)[^<]*(</span>)', ('$1' + $ver + '$2'))
+  Write-Host ("    版本号同步为 " + $ver)
+}
 [System.IO.File]::WriteAllText($htmlPath, $html, (New-Object System.Text.UTF8Encoding($false)))
 if (Test-Path $build) { Remove-Item $build -Recurse -Force }
 New-Item -ItemType Directory -Path $build, "$build\classes", "$build\dex" -Force | Out-Null

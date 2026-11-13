@@ -24,9 +24,9 @@ BG = (23, 23, 26)
 
 # 108dp 画布，4x = 432px；可见区 72dp=288px，安全圆 66dp=264px
 CANVAS = 432
-CARD_W, CARD_H = 252, 292
-PHOTO_H = 196
-CORNER = 14
+CARD_W, CARD_H = 254, 300
+PHOTO_H = 208
+CORNER = 5   # 接近相纸直角，避免像游戏机
 
 
 def draw_card(img, cx, cy):
@@ -38,7 +38,18 @@ def draw_card(img, cx, cy):
     # 照片区
     px0, py0 = x0 + 12, y0 + 12
     px1, py1 = x1 - 12, y0 + 12 + PHOTO_H
-    d.rounded_rectangle([px0, py0, px1, py1], radius=5, fill=INK + (255,))
+    grad = Image.new("RGB", (max(1, px1 - px0), max(1, py1 - py0)))
+    gd = ImageDraw.Draw(grad)
+    top, bot = (58, 64, 76), (21, 22, 26)
+    for i in range(grad.height):
+        t = i / max(1, grad.height - 1)
+        gd.line([(0, i), (grad.width, i)],
+                fill=(int(top[0] + (bot[0] - top[0]) * t),
+                      int(top[1] + (bot[1] - top[1]) * t),
+                      int(top[2] + (bot[2] - top[2]) * t)))
+    mask = Image.new("L", grad.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, grad.width - 1, grad.height - 1], radius=3, fill=255)
+    img.paste(grad, (px0, py0), mask)
     # P9：先画到独立图层，按真实墨迹包围盒居中（字体侧边距/上下留白都不对称）
     # 字号控制在墨迹宽度约为照片区 86%，留出呼吸感又不显小
     target_w = (px1 - px0) * 0.86
@@ -60,12 +71,13 @@ def draw_card(img, cx, cy):
                               (py0 + py1) // 2 - ink.height // 2))
     # 底部水印条
     strip_cy = (py1 + y1) // 2
-    bar_h = 20
-    d.rounded_rectangle([x0 + 20, strip_cy - bar_h // 2,
-                         x0 + 20 + 104, strip_cy + bar_h // 2],
-                        radius=bar_h // 2, fill=INK + (255,))
-    r = 12
-    dx = x1 - 34
+    # 两行“文字”示意（设备名 + 参数），比单条更像水印而不是按钮
+    d.rounded_rectangle([x0 + 24, strip_cy - 15, x0 + 24 + 96, strip_cy - 5],
+                        radius=5, fill=INK + (255,))
+    d.rounded_rectangle([x0 + 24, strip_cy + 3, x0 + 24 + 64, strip_cy + 11],
+                        radius=4, fill=(126, 122, 116, 255))
+    r = 15
+    dx = x1 - 38
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
 
