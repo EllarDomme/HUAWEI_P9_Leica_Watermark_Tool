@@ -20,8 +20,17 @@ if ($html -match '__DEMO|__setDemo') { throw 'demo hooks still present' }
 if (Test-Path $build) { Remove-Item $build -Recurse -Force }
 New-Item -ItemType Directory -Path $build, "$build\classes", "$build\dex" -Force | Out-Null
 
-Write-Host '[1/6] aapt2 link'
-& "$bt\aapt2.exe" link -o "$build\base.apk" -I $jar --manifest "$root\AndroidManifest.xml" -A "$root\assets" --min-sdk-version 21 --target-sdk-version 33
+Write-Host '[1/6] aapt2 compile + link'
+# 有 res/ 时先编译资源（图标等）；用 cmd 调用，避免 PowerShell 直接调 exe 时的 zip 写入问题
+$resDir = "$root\res"
+$resArg = ''
+if (Test-Path $resDir) {
+  $resZip = "$build\res.zip"
+  cmd /c "`"$bt\aapt2.exe`" compile --dir `"$resDir`" -o `"$resZip`" 2>&1"
+  if ($LASTEXITCODE -ne 0) { throw 'aapt2 compile failed' }
+  $resArg = "`"$resZip`""
+}
+cmd /c "`"$bt\aapt2.exe`" link -o `"$build\base.apk`" -I `"$jar`" --manifest `"$root\AndroidManifest.xml`" -A `"$root\assets`" --min-sdk-version 21 --target-sdk-version 33 $resArg 2>&1"
 if ($LASTEXITCODE -ne 0) { throw 'aapt2 link failed' }
 
 Write-Host '[2/6] javac'
