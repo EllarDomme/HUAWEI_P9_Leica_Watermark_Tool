@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EXIF 水印 · 本地离线版</title>
+<style>
+  :root{
+    --bg:#f7f5f0; --card:#fff; --ink:#1b1a17; --muted:#6f6b63;
+    --line:#e2ded5; --accent:#1b1a17; --good:#2f7d4f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.7 "Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 22px 80px}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:34px}
+  .dot{width:10px;height:10px;border-radius:50%;background:#d0021b}
+  header .name{font-weight:600;letter-spacing:.4px}
+  header .tag{color:var(--muted);font-size:13px;border:1px solid var(--line);
+    border-radius:20px;padding:2px 10px}
+  h1{font-size:30px;line-height:1.35;margin:0 0 12px;letter-spacing:-.3px}
+  .lead{color:var(--muted);margin:0 0 28px;font-size:16px}
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+  .btn{display:inline-block;text-decoration:none;padding:13px 22px;border-radius:12px;
+    font-size:15px;border:1px solid var(--line);color:var(--ink);background:#fff;
+    transition:.15s}
+  .btn:hover{border-color:#c9c3b7}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .btn.primary:hover{opacity:.9}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:22px 24px;margin-bottom:18px}
+  .card h2{font-size:16px;margin:0 0 14px;letter-spacing:.2px}
+  ul{margin:0;padding-left:20px}
+  li{margin:9px 0;color:#3a3730}
+  li b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:620px){.grid{grid-template-columns:1fr}}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:10px 0;
+    border-bottom:1px dashed var(--line);font-size:14px}
+  .kv:last-child{border-bottom:0}
+  .kv span:first-child{color:var(--muted);flex:0 0 auto}
+  .kv code{font-family:ui-monospace,Consolas,monospace;font-size:12px;
+    word-break:break-all;text-align:right;color:#3a3730}
+  .note{color:var(--muted);font-size:13px;margin-top:10px}
+  footer{color:var(--muted);font-size:13px;margin-top:34px;line-height:1.8}
+  footer a{color:var(--muted)}
+  .warn{border-left:3px solid #d0021b;padding-left:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="dot"></span>
+    <span class="name">EXIF 水印</span>
+    <span class="tag">本地 · 离线</span>
+  </header>
+
+  <h1>给照片加一条德味水印</h1>
+  <p class="lead">单文件工具，安卓有 App、电脑有网页版。自动读 EXIF，六种版式，完全离线，照片不出本机。</p>
+
+  <div class="actions">
+    <a class="btn primary" href="../">在线试用（不用下载）</a>
+    <a class="btn" href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest">下载安卓 App</a>
+    <a class="btn" href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool">查看源码</a>
+  </div>
+  <p class="sub">先试用，觉得好用再下载。不需要注册、不需要手机号、不收费。</p>
+
+  <div class="card">
+    <h2>为什么可以放心下载</h2>
+    <ul>
+      <li><b>代码是公开的</b>：仓库里能看到每一次提交，MIT 许可，随便审</li>
+      <li><b>没有网络权限</b>：App 只申请「写入相册」一项，没有联网能力，物理上不可能上传你的照片</li>
+      <li><b>先试后下</b>：网页版功能完全一样，点上面「在线试用」就能验证，不用先装东西</li>
+      <li><b>不需要任何身份</b>：无登录、无手机号、无邮箱、无内购、无广告</li>
+      <li><b>可以校验文件</b>：下面给了 SHA-256，下载后比对一下就知道有没有被改过</li>
+      <li><b>作者可查</b>：所有开发过程都在 GitHub 上，有问题直接开 Issue 找我</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>当前版本</h2>
+    <div class="kv"><span>版本号</span><span id="ver">v1.0.68</span></div>
+    <div class="kv"><span>文件大小</span><span>552 KB</span></div>
+    <div class="kv"><span>支持系统</span><span>Android 5.0 及以上</span></div>
+    <div class="kv"><span>SHA-256</span><code>efb10d2d24de6154bc27f57c972987b76978074c166aa67b2b98303df711164d</code></div>
+    <p class="note">
+      下载后可以在手机上用「文件管理 → 属性」或电脑上 <code>certutil -hashfile 文件名 SHA256</code> 比对。
+      每次发新版这个值都会变，以 Release 页面的说明为准。
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>它是怎么工作的</h2>
+    <ul>
+      <li>照片在你的浏览器 / App 里解码，画上水印，再存回本地</li>
+      <li>整个过程没有任何网络请求——断网照样能用</li>
+      <li>预设和图标存在本机，不上传、不同步</li>
+      <li>网页版关闭页面后内存即释放</li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <h2>需要说明的一点</h2>
+    <p style="margin:0;color:#3a3730">
+      这是个人学习作品，<b>与华为、Leica Camera AG 均无关联</b>，不是官方工具，也未获授权。
+      内置的红点标属于 Leica 的注册商标，仅作本地排版示意；如需再分发请换成自己的图标。
+      完整说明见
+      <a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/blob/main/NOTICE.md">NOTICE.md</a>。
+    </p>
+  </div>
+
+  <footer>
+    遇到问题或想提建议：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/issues">GitHub Issues</a><br>
+    更新记录：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases">Releases</a>
+  </footer>
+
+</div>
+</body>
+</html>
