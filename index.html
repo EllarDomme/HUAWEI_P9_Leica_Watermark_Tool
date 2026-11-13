@@ -307,9 +307,6 @@
   .linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;color:#9a978f;
     text-decoration:underline;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .linkbtn:active{color:#f3f0ea}
-  .empty-sub{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);
-    font-size:12px;color:#6f6c66;letter-spacing:.2px}
-  .nw-sub{margin:-6px 0 14px!important;font-size:12px;color:#8b8880;letter-spacing:.2px}
 </style>
 </head>
 <body>
@@ -336,7 +333,6 @@
       <div class="ico">＋</div>
       <h2>拖入照片，或点击选择</h2>
       <p>JPG / PNG / WebP · 自动读取 EXIF</p>
-      <p class="empty-sub">为那台 2016 年的 P9 而起 · 任意机型可用</p>
     </div>
     <canvas id="preview" hidden></canvas>
     <div class="stage-foot" id="meta" hidden></div>
@@ -513,7 +509,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.80</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.81</span></p>
     </section>
   </aside>
 </div>
@@ -2854,7 +2850,6 @@
 <div class="nw-mask" id="noticeMask" hidden>
   <div class="nw-card">
     <h3 id="nwTitle">使用须知</h3>
-    <p class="nw-sub" id="nwSub">为那台 2016 年的 P9 而起 · 任意机型可用</p>
     <div id="nwBody">
       <p>本工具是<b>个人学习作品</b>，与华为、Leica Camera AG 均无关联，未获授权或认可。</p>
       <p>内嵌的徕卡红点标属于 Leica 的注册商标，仅作本地排版示意；<b>如需再分发，请用「上传」换成自己的图标。</b></p>
