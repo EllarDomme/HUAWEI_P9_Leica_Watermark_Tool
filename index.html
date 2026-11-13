@@ -288,6 +288,18 @@
   .stage .empty p{font-size:clamp(10px,1.4vh,12px)}
   @media (max-height:620px){ .stage .empty p{display:none} }
   @media (max-height:520px){ .stage .empty .ico{display:none} }
+
+  /* 使用须知 / 关于 */
+  .nw-mask{position:fixed;inset:0;z-index:60;background:rgba(8,8,10,.72);display:flex;
+    align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+  .nw-mask[hidden]{display:none}
+  .nw-card{width:min(460px,100%);background:#18181c;border:1px solid #2e2e36;border-radius:16px;
+    padding:22px;color:#e9e6df;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .nw-card h3{margin:0 0 12px;font-size:16px;font-weight:600}
+  .nw-card p{margin:0 0 10px;font-size:13px;line-height:1.7;color:#c9c6bf}
+  .nw-card b{color:#f3f0ea}
+  .nw-actions{display:flex;justify-content:flex-end;margin-top:14px}
+  .nw-foot{margin:14px 0 0!important;font-size:11px;color:#7e7b74;line-height:1.6;word-break:break-all}
 </style>
 </head>
 <body>
@@ -490,6 +502,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
+      <p class="foot-note"><a href="#" id="aboutLink" style="color:#9a978f;text-decoration:underline">关于本工具</a> · v<span id="verText">1.0.67</span></p>
     </section>
   </aside>
 </div>
@@ -1575,6 +1588,44 @@
     var y = window.pageYOffset || document.documentElement.scrollTop || 0;
     if (y !== 0) window.scrollTo(0, 0);
   }, { passive: true });
+
+  /* ---------- 使用须知 / 关于 ---------- */
+  function initNotice() {
+    var KEY = 'exifwm.notice.v1';
+    var mask = document.getElementById('noticeMask');
+    var title = document.getElementById('nwTitle');
+    var ok = document.getElementById('nwOk');
+    var about = document.getElementById('aboutLink');
+    if (!mask || !ok) return;
+
+    function show(asAbout) {
+      title.textContent = asAbout ? '关于本工具' : '使用须知';
+      mask.hidden = false;
+      ok.textContent = asAbout ? '关闭' : '我知道了';
+    }
+    function hide() {
+      mask.hidden = true;
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    }
+
+    ok.addEventListener('click', hide);
+    mask.addEventListener('click', function (e) { if (e.target === mask) hide(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !mask.hidden) hide();
+    });
+    if (about) {
+      about.addEventListener('click', function (e) { e.preventDefault(); show(true); });
+    }
+
+    var seen = false;
+    try { seen = !!localStorage.getItem(KEY); } catch (e) {}
+    if (!seen) setTimeout(function () { show(false); }, 400);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotice);
+  } else {
+    initNotice();
+  }
 
   var resizeTimer = 0;
   window.addEventListener('resize', function () {
@@ -2789,5 +2840,19 @@
   }
 })();
 </script>
+<div class="nw-mask" id="noticeMask" hidden>
+  <div class="nw-card">
+    <h3 id="nwTitle">使用须知</h3>
+    <div id="nwBody">
+      <p>本工具是<b>个人学习作品</b>，与华为、Leica Camera AG 均无关联，未获授权或认可。</p>
+      <p>内嵌的徕卡红点标属于 Leica 的注册商标，仅作本地排版示意；<b>如需再分发，请用「上传」换成自己的图标。</b></p>
+      <p>照片只在本机处理，不上传、不联网。</p>
+    </div>
+    <div class="nw-actions">
+      <button class="btn solid" id="nwOk">我知道了</button>
+    </div>
+    <p class="nw-foot">完整素材来源与下架流程：github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/blob/main/NOTICE.md</p>
+  </div>
+</div>
 </body>
 </html>

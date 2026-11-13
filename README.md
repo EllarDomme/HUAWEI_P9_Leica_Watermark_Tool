@@ -9,7 +9,7 @@
 | **安卓 App（APK）** | 手机上处理照片 | 装好就是普通应用，导出直接进相册，不需要浏览器 |
 | **网页版（index.html）** | 电脑上处理、或临时用 | 双击即开，离线可用，不需要安装 |
 
-> **下载 APK**：[v1.0.66](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（Android 5.0+，548KB）
+> **下载 APK**：[v1.0.67](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（Android 5.0+，548KB）
 > **在线试用**：<https://ellardomme.github.io/HUAWEI_P9_Leica_Watermark_Tool/>
 
 不上传、不联网、不装任何第三方组件，照片和预设全部留在本机。
@@ -78,6 +78,8 @@ App 只要一个权限：**写入相册**。没有网络权限，也读不到你
 - **条高 / 字号 / 图标大小 / 垂直位置 / 图标间距**：全部按图宽百分比缩放，4K 导出和预览比例一致
 - **预览可缩放**：双指缩放、拖动、双击切换；工具栏有 − / 百分比 / +
 - **预设**：另存为 / 覆盖保存 / 重命名 / 删除；导出备份 JSON，换设备可恢复
+- **首次使用提示**：第一次打开会显示一次「使用须知」（非官方声明），点「我知道了」后不再出现；
+  面板底部「关于本工具」可随时再看
 - **原图尺寸导出**：JPEG（质量可调）或 PNG，文件名加 `-wm`
 
 ---
