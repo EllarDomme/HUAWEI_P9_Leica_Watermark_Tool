@@ -310,6 +310,10 @@
   .nw-diag{margin:12px 0 0;padding:10px 12px;background:#0f0f12;border:1px solid #26262e;
     border-radius:8px;font:11px/1.6 ui-monospace,Consolas,monospace;color:#8d8a83;
     white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto}
+  .mini.chip-btn{border:1px solid var(--line);border-radius:6px;padding:3px 10px;
+    color:#b9b6ae;background:rgba(255,255,255,.02);letter-spacing:.3px}
+  .mini.chip-btn:hover{border-color:#4a4a55;color:#f3f0ea;background:rgba(255,255,255,.06)}
+  .mini.chip-btn:active{background:rgba(255,255,255,.1)}
 </style>
 </head>
 <body>
@@ -420,7 +424,7 @@
     </section>
 
     <section>
-      <div class="sec-row"><h3 class="sec">外观</h3><button class="mini" id="resetLook">重置</button></div>
+      <div class="sec-row"><h3 class="sec">外观</h3><button class="mini chip-btn" id="resetLook">重置</button></div>
       <div class="sld" data-show="bar,dark">
         <div class="sld-top"><span>白条高度</span><output id="barOut">8.4%</output></div>
         <input type="range" id="bar" min="4" max="20" step="0.5" value="8.2">
@@ -464,8 +468,8 @@
         <input type="range" id="pos" min="0" max="100" step="5" value="75">
       </div>
       <div class="sld" data-show="center">
-        <div class="sld-top"><span>图标间距</span><output id="gapOut">28</output></div>
-        <input type="range" id="logoGap" min="0" max="100" step="5" value="28">
+        <div class="sld-top"><span>图标间距</span><output id="gapOut">30</output></div>
+        <input type="range" id="logoGap" min="0" max="100" step="5" value="30">
       </div>
       <div class="sld" data-show="center">
         <div class="sld-top"><span>行距</span><output id="lineGapOut">100%</output></div>
@@ -516,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.97</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.98</span></p>
     </section>
   </aside>
 </div>
@@ -565,7 +569,7 @@
   var DEF_UI = {
     bar: 0.082, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
     showDate: false, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, paramTone: 88, toneKey: '', tones: null,
-    format: 'jpeg', quality: 0.92, pos: 75, logoGap: 28, lineGap: 100, pinPreview: true, previewVh: 42
+    format: 'jpeg', quality: 0.92, pos: 75, logoGap: 30, lineGap: 100, pinPreview: true, previewVh: 42
   };
 
   var state = {
@@ -1202,7 +1206,7 @@
     var sS = g.iw * 0.016 * ui.font;
 
     var items = [];
-    var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 28;
+    var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 30;
     if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * gapV / 100 });
     var lgk = (typeof ui.lineGap === 'number') ? ui.lineGap : 100;
     if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.007 * lgk / 100, color: nameInk });
@@ -2065,7 +2069,7 @@
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
     setRange('#pos', (state.ui.pos == null ? 75 : state.ui.pos), '#posOut', '', 0);
-    setRange('#logoGap', (state.ui.logoGap == null ? 28 : state.ui.logoGap), '#gapOut', '', 0);
+    setRange('#logoGap', (state.ui.logoGap == null ? 30 : state.ui.logoGap), '#gapOut', '', 0);
     setRange('#lineGap', (state.ui.lineGap == null ? 100 : state.ui.lineGap), '#lineGapOut', '%', 0);
     $$('#barAlignSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === (state.ui.barAlign || 'center'));
