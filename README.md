@@ -1,7 +1,10 @@
-# EXIF 水印 · 本地离线版
+# 华为 P9 徕卡水印 · 本地离线复刻版
 
-单文件网页工具。双击 `index.html` 就能用，不上传、不联网、不需要安装任何东西。
-照片、图标、预设全部留在本机。
+为华为 P9 而起的水印工具：**任意品牌机型都能用**，填自己的品牌和设备名即可。
+单文件网页，双击 `index.html` 就能跑——不上传、不联网、不装任何东西，照片和预设全部留在本机。
+
+> **在线试用**：<https://ellardomme.github.io/HUAWEI_P9_Leica_Watermark_Tool/>
+> **下载 APK**：[v1.0.66](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（Android 5.0+，548KB）
 
 ![华为 P9 原图](docs/images/sample-before.jpg)
 ![加完水印](docs/images/sample-after.jpg)
