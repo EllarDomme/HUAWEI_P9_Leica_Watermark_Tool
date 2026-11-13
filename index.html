@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.98</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.99</span></p>
     </section>
   </aside>
 </div>
@@ -2801,11 +2801,25 @@
     catch (e) { console.error(e); toast('导出出错：' + (e.message || e)); }
   }
 
+  /* 同一张图重复导出时自动加序号，避免覆盖 */
+  var usedExportNames = {};
+  function uniqueExportName(base, ext) {
+    var cand = base + '.' + ext, i = 1;
+    while (usedExportNames[cand]) {
+      i++;
+      cand = base + i + '.' + ext;
+    }
+    usedExportNames[cand] = true;
+    return cand;
+  }
+
   function downloadInner() {
     if (!state.bitmap) return;
     var isPng = state.ui.format === 'png';
     var type = isPng ? 'image/png' : 'image/jpeg';
-    var name = (state.fileName || 'image').replace(/\.[^.]+$/, '') + '-wm.' + (isPng ? 'png' : 'jpg');
+    var baseName = (state.fileName || 'image').replace(/\.[^.]+$/, '');
+    var ext = isPng ? 'png' : 'jpg';
+    var name = uniqueExportName(baseName + '-wm', ext);
 
     function pickHandle() {
       try {
