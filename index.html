@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.99</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.0</span></p>
     </section>
   </aside>
 </div>
@@ -2801,13 +2801,20 @@
     catch (e) { console.error(e); toast('导出出错：' + (e.message || e)); }
   }
 
-  /* 同一张图重复导出时自动加序号，避免覆盖 */
+  /* 导出命名：主名-wm-时间戳，秒级重复再加序号，绝不覆盖 */
   var usedExportNames = {};
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function stampNow() {
+    var d = new Date();
+    return '' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate())
+      + '-' + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds());
+  }
   function uniqueExportName(base, ext) {
-    var cand = base + '.' + ext, i = 1;
+    var stem = base + '-' + stampNow();
+    var cand = stem + '.' + ext, i = 1;
     while (usedExportNames[cand]) {
       i++;
-      cand = base + i + '.' + ext;
+      cand = stem + '-' + i + '.' + ext;
     }
     usedExportNames[cand] = true;
     return cand;

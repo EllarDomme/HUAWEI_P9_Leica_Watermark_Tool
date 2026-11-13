@@ -11,7 +11,7 @@
 
 > **下载 APK**（二选一）
 > · 蓝奏云（国内直连）：<https://wwbao.lanzouq.com/i4F9y4fuuhsf> 提取码 `ddvp`
-> · GitHub Releases：[最新版](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（v1.0.80，625KB，Android 5.0+）
+> · GitHub Releases：[最新版](https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases/latest)（v1.0.80，629KB，Android 5.0+）
 > **在线试用**：<https://ellardomme.github.io/HUAWEI_P9_Leica_Watermark_Tool/>
 
 不上传、不联网、不装任何第三方组件，照片和预设全部留在本机。
@@ -107,7 +107,7 @@ App 版：直接写入相册 `Pictures/P9Watermark`，不弹对话框。
 ### 安卓 App
 
 - 最低 **Android 5.0**（API 21），已适配到 Android 14
-- 包名 `com.ellardomme.p9watermark`，体积约 625KB
+- 包名 `com.ellardomme.p9watermark`，体积约 629KB
 - 返回键：先关浮层，主界面双击退出
 
 ### 网页版
