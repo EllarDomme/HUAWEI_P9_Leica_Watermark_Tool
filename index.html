@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.92</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.93</span></p>
     </section>
   </aside>
 </div>
@@ -1199,8 +1199,8 @@
 
     var items = [];
     var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
-    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * gapV / 100 });
-    if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.013, color: nameInk });
+    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.024 * gapV / 100 });
+    if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.007, color: nameInk });
     if (params) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
     if (date) items.push({ type: 'date', size: pS * 0.86, gap: pS * 0.85 });
     if (sig) items.push({ type: 'text', text: sig, size: sS, weight: 400, gap: sS * 1.05, color: dateInk });
