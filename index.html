@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.1</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.2</span></p>
     </section>
   </aside>
 </div>
@@ -556,9 +556,9 @@
   /* 徕卡字体的字身比系统字体小一号，这里按族补偿，视觉上和其它字体同号 */
   function familySizeScale() {
     var f = state.ui.fontFamily;
-    if (f === 'hwlight') return 1.07;
-    if (f === 'hw') return 1.08;
-    if (f === 'hwhand') return 1.12;
+    if (f === 'hwlight') return 0.99;
+    if (f === 'hw') return 1.00;
+    if (f === 'hwhand') return 1.04;
     return 1;
   }
 
