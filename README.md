@@ -3,7 +3,10 @@
 单文件网页工具。双击 `index.html` 就能用，不上传、不联网、不需要安装任何东西。
 照片、图标、预设全部留在本机。
 
-![界面](开发文件/preview/ui.jpg)
+![华为 P9 原图](docs/images/sample-before.jpg)
+![加完水印](docs/images/sample-after.jpg)
+
+*左：华为 P9 原片 ｜ 右：同一张加完水印（白条模板）*
 
 ---
 
@@ -26,12 +29,12 @@
 | **大字** | LUMO / OPPO 品牌大字 | 作品封面、品牌感 |
 | **胶片** | 画框留边，底部排字 | 日系、胶片模拟 |
 
-![白条](开发文件/preview/bar.jpg)
-![黑条](开发文件/preview/dark.jpg)
-![居中](开发文件/preview/center.jpg)
-![左下](开发文件/preview/corner.jpg)
-![大字](开发文件/preview/wordmark.jpg)
-![胶片](开发文件/preview/film.jpg)
+![白条](docs/images/tpl-bar.jpg)
+![黑条](docs/images/tpl-dark.jpg)
+![居中](docs/images/tpl-center.jpg)
+![左下](docs/images/tpl-corner.jpg)
+![大字](docs/images/tpl-wordmark.jpg)
+![胶片](docs/images/tpl-film.jpg)
 
 ---
 
@@ -173,25 +176,16 @@ node 开发文件/tests/cdp_test.mjs
 
 > 这是桌面 Chromium 环境的测试；真机（P9 / 安卓 WebView）仍需人工验收。
 
-## 推送到 GitHub
+## 常见问题：推送失败
 
-本机 hosts 把 github.com 指到了 127.0.0.1，直接 push 会失败。用自带的小代理绕过：
+如果 `git push` 报 `Connection was reset` / `Proxy CONNECT aborted`，多半是网络到 `github.com:443` 不稳定，可以：
 
 ```powershell
-cd "E:\DeskTop\P9徕卡水印工具"
-
-# 1. 起代理（后台）
-Start-Process node -ArgumentList "开发文件\push_proxy.mjs" -WindowStyle Hidden
-Start-Sleep 2
-
-# 2. 推送
-git -c http.proxy=http://127.0.0.1:8443 push origin main
-
-# 3. 关代理
-Stop-Process -Id (Get-Content "开发文件\.proxy.pid")
+# 走系统代理或换一个网络重试
+git -c http.proxy=http://127.0.0.1:端口 push origin main
 ```
 
-代理只是把 `github.com:443` 的流量转发到 GitHub 的真实 IP，TLS 仍是端到端加密。
+仓库本身不依赖任何代理配置，正常网络下直接 `git push` 即可。
 
 ## Android APK
 
@@ -200,7 +194,7 @@ Stop-Process -Id (Get-Content "开发文件\.proxy.pid")
 
 - 包名 `com.ellardomme.p9watermark`，最低 Android 5.0
 - 返回键：先关浮层，主界面双击退出
-- 体积约 484KB（6 套模板 + 两套内嵌徕卡字体 + 全套离线依赖）
+- 体积约 548KB（6 套模板 + 六套内嵌徕卡字重 + 全套离线依赖）
 
 重新打包（需要 JDK 与 Android SDK，脚本里写死了本机路径，换机器改 `build.ps1` 顶部的 `$sdk`）：
 
