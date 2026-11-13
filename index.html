@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.2</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.3</span></p>
     </section>
   </aside>
 </div>
@@ -681,7 +681,7 @@
   function fitText(ctx, text, size, weight, maxW, spacing) {
     if (!text) return size;
     var w = measureAt(ctx, text, size, weight, spacing || 0);
-    return w > maxW ? Math.max(size * 0.55, size * maxW / w) : size;
+    return w > maxW ? Math.max(size * 0.35, size * maxW / w) : size;
   }
 
   function drawCover(ctx, img, x, y, w, h) {
@@ -1127,7 +1127,7 @@
     var maxH = g.barH * 0.84;
     if (blockH > maxH) {
       var k = maxH / blockH;
-      nameS *= k; pS *= k; subS *= k; pH *= k; gapLine *= k;
+      nameS *= k; pS *= k; subS *= k; gapLine *= k;   // 图标尺寸独立，不跟着缩
       blockH = nameS * 1.25 + (l2 ? gapLine + subS * 1.3 : 0);
     }
 
@@ -1158,6 +1158,7 @@
     var groupW = (lw || 0) + (showDivider ? gapIcon + dividerW + gapParam : 0) + (tokens.length ? pW : 0);
     var gx = padR - groupW;
 
+    var rightStart = gx;   // 右侧整组（图标/分隔线/参数）的最左端
     if (lw) {
       drawLogo(ctx, gx, cy, pH, 'left');
       gx += lw;
@@ -1173,7 +1174,7 @@
       var maxW = padR - gx;
       if (pW > maxW && maxW > 10) {
         var kk = maxW / pW;
-        ps = Math.max(pS * 0.5, ps * kk);
+        ps = Math.max(pS * 0.35, ps * kk);
         pgap *= kk;
         sizes = tokens.map(function (t) { return measureAt(ctx, t, ps, paramWeight()); });
       }
@@ -1185,11 +1186,11 @@
     }
 
     // 左侧：设备名 +（日期/署名）
-    var leftMax = (groupW > 0 ? gx - gapIcon : padR) - padL;
+    var leftMax = (groupW > 0 ? rightStart - gapIcon : padR) - padL;
     var ns = nameS;
     if (name && leftMax > 10) {
       var nw = measureAt(ctx, name, ns, 500);
-      if (nw > leftMax) ns = Math.max(nameS * 0.5, ns * leftMax / nw);
+      if (nw > leftMax) ns = Math.max(nameS * 0.35, ns * leftMax / nw);
     }
 
     if (name) drawT(ctx, name, padL, line1Y, { size: ns, weight: 500, color: nameInk, spacing: ns * 0.03 });
@@ -1431,6 +1432,12 @@
     if (tpl === 'bar' || tpl === 'dark') {
       bd = Math.round(iw * ui.border);
       barH = Math.max(8, Math.round(iw * ui.bar));
+      // 字号调大时白条自动变高，保证文字真的能放大而不是被压回去
+      var nS = iw * 0.0252 * ui.font;
+      var sS = iw * 0.0174 * ui.font;
+      var hasDateLine = !!(dateText() || (state.fields && state.fields.signature));
+      var blockNeed = nS * 1.25 + (hasDateLine ? nS * 0.42 + sS * 1.3 : 0);
+      barH = Math.max(barH, Math.round(blockNeed / 0.84));
       cw = iw + bd * 2;
       // 底部不再额外留白边，白条直接接在照片下沿，文字才真正居中
       ch = ih + bd + barH;
