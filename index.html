@@ -310,6 +310,12 @@
   .nw-diag{margin:12px 0 0;padding:10px 12px;background:#0f0f12;border:1px solid #26262e;
     border-radius:8px;font:11px/1.6 ui-monospace,Consolas,monospace;color:#8d8a83;
     white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto}
+  .btn.ghost{background:transparent;border:1px solid #33333c;color:#c9c6bf}
+  .btn.ghost:hover{border-color:#4a4a55;background:rgba(255,255,255,.03)}
+  .btn.ghost:active{background:rgba(255,255,255,.06)}
+  .reset-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;
+    padding:11px 16px;font-size:13px;letter-spacing:.3px}
+  .reset-ico{font-size:15px;line-height:1}
 </style>
 </head>
 <body>
@@ -420,7 +426,7 @@
     </section>
 
     <section>
-      <div class="sec-row"><h3 class="sec">外观</h3><button class="mini" id="resetLook">重置</button></div>
+      <div class="sec-row"><h3 class="sec">外观</h3></div>
       <div class="sld" data-show="bar,dark">
         <div class="sld-top"><span>白条高度</span><output id="barOut">8.4%</output></div>
         <input type="range" id="bar" min="4" max="20" step="0.5" value="8.2">
@@ -498,6 +504,10 @@
         <div class="sld-top"><span>参数深浅</span><output id="paramToneOut">88%</output></div>
         <input type="range" id="paramTone" min="10" max="100" step="2" value="88">
       </div>
+      <button class="btn ghost wide reset-btn" id="resetLook">
+        <span class="reset-ico">↺</span> 恢复默认外观
+      </button>
+      <p class="foot-note" style="margin-top:6px">只恢复外观参数，不动照片、预设和文字内容</p>
     </section>
 
     <section>
@@ -516,7 +526,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.95</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.96</span></p>
     </section>
   </aside>
 </div>
