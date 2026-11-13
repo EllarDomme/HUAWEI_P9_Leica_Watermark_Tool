@@ -5,11 +5,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.ContentValues;
 import android.media.MediaScannerConnection;
+import android.provider.MediaStore;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -19,6 +22,7 @@ import android.webkit.WebView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.FileOutputStream;
 
 public class MainActivity extends Activity {
@@ -127,67 +131,75 @@ public class MainActivity extends Activity {
         private final Context ctx;
         Bridge(Context c) { ctx = c; }
 
+        /* ---------- 统一的写入通道：Q+ 走 MediaStore（相册可见），旧系统写文件 ---------- */
+        private Uri pendingUri = null;
+        private OutputStream out = null;
+
+        private OutputStream openStream(String name, String mime) throws Exception {
+            if (Build.VERSION.SDK_INT >= 29) {
+                ContentValues cv = new ContentValues();
+                cv.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+                cv.put(MediaStore.Images.Media.MIME_TYPE, mime == null ? "image/jpeg" : mime);
+                cv.put(MediaStore.Images.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/德味水印");
+                cv.put(MediaStore.Images.Media.IS_PENDING, 1);
+                pendingUri = ctx.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                if (pendingUri == null) throw new Exception("无法创建相册条目");
+                return ctx.getContentResolver().openOutputStream(pendingUri);
+            }
+            File dir = new File(Environment.getExternalStorageDirectory(), "德味水印");
+            if (!dir.exists()) dir.mkdirs();
+            File f = new File(dir, name);
+            pendingUri = Uri.fromFile(f);
+            return new FileOutputStream(f);
+        }
+
+        private String finishStream(String mime) {
+            try {
+                if (out != null) { out.flush(); out.close(); out = null; }
+                if (pendingUri == null) return "err:未开始";
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues cv = new ContentValues();
+                    cv.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    ctx.getContentResolver().update(pendingUri, cv, null, null);
+                } else {
+                    MediaScannerConnection.scanFile(ctx,
+                            new String[]{ pendingUri.getPath() },
+                            new String[]{ mime == null ? "image/jpeg" : mime }, null);
+                }
+                return "ok:" + pendingUri;
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            } finally {
+                pendingUri = null;
+            }
+        }
+
         @JavascriptInterface
         public String saveImage(String base64, String name, String mime) {
             try {
                 byte[] data = Base64.decode(base64, Base64.DEFAULT);
-                File dir;
-                if (Build.VERSION.SDK_INT >= 29) {
-                    dir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "P9水印");
-                } else {
-                    // Android 9 及以下：直接放在内部存储根目录，文件管理一眼能看到
-                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
-                }
-                if (!dir.exists()) dir.mkdirs();
-                File f = new File(dir, name);
-                FileOutputStream fos = new FileOutputStream(f);
-                fos.write(data);
-                fos.close();
-                MediaScannerConnection.scanFile(ctx, new String[]{ f.getAbsolutePath() },
-                        new String[]{ mime == null ? "image/jpeg" : mime }, null);
-                return "ok:" + f.getAbsolutePath();
+                out = openStream(name, mime);
+                out.write(data);
+                return finishStream(mime);
             } catch (Exception e) {
                 return "err:" + e.getMessage();
+            } finally {
+                try { if (out != null) { out.close(); out = null; } } catch (Exception ignore) {}
             }
         }
 
         @JavascriptInterface
         public String saveFile(String base64, String name, String mime) {
-            try {
-                byte[] data = Base64.decode(base64, Base64.DEFAULT);
-                File dir;
-                if (Build.VERSION.SDK_INT >= 29) {
-                    dir = new File(ctx.getExternalFilesDir(null), "P9水印");
-                } else {
-                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
-                }
-                if (!dir.exists()) dir.mkdirs();
-                File f = new File(dir, name);
-                FileOutputStream fos = new FileOutputStream(f);
-                fos.write(data);
-                fos.close();
-                return "ok:" + f.getAbsolutePath();
-            } catch (Exception e) {
-                return "err:" + e.getMessage();
-            }
+            return saveImage(base64, name, mime);
         }
 
-        /* 大图分块写入：避免一次性传几十 MB 的 base64 字符串导致内存不足 */
-        private File chunkFile = null;
-        private FileOutputStream chunkOut = null;
-
+        /* ---------- 大图分块写入 ---------- */
         @JavascriptInterface
         public String beginSave(String name, String mime) {
             try {
-                File dir;
-                if (Build.VERSION.SDK_INT >= 29) {
-                    dir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "P9水印");
-                } else {
-                    dir = new File(Environment.getExternalStorageDirectory(), "P9水印");
-                }
-                if (!dir.exists()) dir.mkdirs();
-                chunkFile = new File(dir, name);
-                chunkOut = new FileOutputStream(chunkFile);
+                out = openStream(name, mime);
                 return "ok";
             } catch (Exception e) {
                 return "err:" + e.getMessage();
@@ -197,9 +209,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String appendChunk(String base64) {
             try {
-                if (chunkOut == null) return "err:未开始";
-                byte[] data = Base64.decode(base64, Base64.DEFAULT);
-                chunkOut.write(data);
+                if (out == null) return "err:未开始";
+                out.write(Base64.decode(base64, Base64.DEFAULT));
                 return "ok";
             } catch (Exception e) {
                 return "err:" + e.getMessage();
@@ -208,19 +219,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String endSave(String mime) {
-            try {
-                if (chunkOut == null) return "err:未开始";
-                chunkOut.flush();
-                chunkOut.close();
-                chunkOut = null;
-                MediaScannerConnection.scanFile(ctx, new String[]{ chunkFile.getAbsolutePath() },
-                        new String[]{ mime == null ? "image/jpeg" : mime }, null);
-                return "ok:" + chunkFile.getAbsolutePath();
-            } catch (Exception e) {
-                return "err:" + e.getMessage();
-            } finally {
-                chunkOut = null;
-            }
+            return finishStream(mime);
         }
 
         @JavascriptInterface
