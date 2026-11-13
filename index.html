@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.91</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.92</span></p>
     </section>
   </aside>
 </div>
@@ -914,10 +914,14 @@
   }
 
   /* ================= 4. 颜色与图标 ================= */
+  var _inkKey = null, _inkVal = '#ffffff';
   function autoInk() {
     if (state.ui.ink === 'white') return '#ffffff';
     if (state.ui.ink === 'black') return '#141414';
     if (!state.bitmap) return '#ffffff';
+    // 同图同模板只算一次：getImageData 会强制 GPU 回读，手机上很贵
+    var key = state.template + '|' + (state.imgStamp || 0);
+    if (_inkKey === key) return _inkVal;
 
     // 只采样文字实际所在的横带：底部边缘（比如深色任务栏）不参与判断
     var band = {
@@ -926,20 +930,24 @@
       wordmark: [0.12, 0.64, 0.88, 0.950]
     }[state.template] || [0.10, 0.74, 0.90, 0.95];
 
-    var w = state.bitmap.width, h = state.bitmap.height;
+    // 采样用小尺寸副本，避免每次从全尺寸原图上取样
+    var sampleSrc = previewSource() || state.bitmap;
+    var w = sampleSrc.width, h = sampleSrc.height;
     var sx = Math.floor(w * band[0]), sy = Math.floor(h * band[1]);
     var sw = Math.max(1, Math.floor(w * (band[2] - band[0])));
     var sh = Math.max(1, Math.floor(h * (band[3] - band[1])));
 
     var c = makeCanvas(28, 14);
     var x = c.getContext('2d');
-    x.drawImage(state.bitmap, sx, sy, sw, sh, 0, 0, 28, 14);
+    x.drawImage(sampleSrc, sx, sy, sw, sh, 0, 0, 28, 14);
     var d = x.getImageData(0, 0, 28, 14).data, sum = 0, n = 0;
     for (var i = 0; i < d.length; i += 4) {
       sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
       n++;
     }
-    return (sum / (n * 255)) > 0.60 ? '#141414' : '#ffffff';
+    _inkVal = (sum / (n * 255)) > 0.60 ? '#141414' : '#ffffff';
+    _inkKey = key;
+    return _inkVal;
   }
 
   // 预置徕卡标：由你提供的原图抠出圆形，透明底，512px
@@ -1873,6 +1881,7 @@
       return decodeWithFallback(blob, exif.orientation).then(function (bmp) {
         state.bitmap = bmp;
         state.previewSrc = null;
+        state.imgStamp = Date.now();
         state.file = blob;
         state.fileName = name || 'image';
         applyExif(exif);
