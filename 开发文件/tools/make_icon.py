@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""生成 App 图标资源：拍立得 + P9 字标 + 水印条
+"""生成 App 图标资源：相纸 + P9 字标 + 水印条
+
+设计要点（针对 OPPO / vivo 等会"放大裁切"的启动器）：
+  · 背景层铺满 108dp 的米白，任何遮罩/裁切露出的都是米白，不会露出黑角
+  · 所有内容（照片块 + 字标 + 水印条）都控制在中心 66dp 安全圆内
+  · 前景层透明，只画内容
 
 产物（android/res/）：
-  mipmap-{m,h,xh,xxh,xxxh}dpi/ic_launcher.png          传统图标（API 25 及以下）
-  mipmap-{...}/ic_launcher_foreground.png              自适应前景（108dp 画布）
-  mipmap-anydpi-v26/ic_launcher.xml                    自适应图标声明
-  mipmap-anydpi-v26/ic_launcher_round.xml
-  values/colors.xml                                    背景色
+  mipmap-*/ic_launcher.png               传统图标（API 25 及以下）
+  mipmap-*/ic_launcher_foreground.png    自适应前景（108dp 画布）
+  mipmap-anydpi-v26/ic_launcher.xml / ic_launcher_round.xml
+  values/colors.xml                      背景色
 """
 import os
 
@@ -17,50 +21,57 @@ RES = os.path.join(ROOT, "res")
 FONT = r"D:\P9徕卡水印工具\开发文件\fonts\HWLeica-Regular.ttf"
 
 CREAM = (247, 244, 238)
-CARD = (252, 250, 246)
-INK = (22, 21, 19)
+PAPER = (255, 253, 249)
+INK = (24, 23, 21)
 RED = (208, 2, 27)
-BG = (23, 23, 26)
+GRAY = (126, 122, 116)
+BG = (247, 244, 238)
 
-# 108dp 画布，4x = 432px；可见区 72dp=288px，安全圆 66dp=264px
-CANVAS = 432
-CARD_W, CARD_H = 254, 300
-PHOTO_H = 208
-CORNER = 5   # 接近相纸直角，避免像游戏机
+CANVAS = 432          # 108dp @4x
+PHOTO_W = 200         # 50dp
+PHOTO_H = 196         # 49dp
+GAP = 16
+STRIP_H = 38
 
-
-def draw_card(img, cx, cy):
-    """在透明画布上画拍立得卡片"""
+def _content(img, cx, cy):
+    """在透明画布上画：照片块 + P9 + 水印条（整体以 cx,cy 为中心）"""
     d = ImageDraw.Draw(img)
-    x0, y0 = cx - CARD_W // 2, cy - CARD_H // 2
-    x1, y1 = x0 + CARD_W, y0 + CARD_H
-    d.rounded_rectangle([x0, y0, x1, y1], radius=CORNER, fill=CARD + (255,))
-    # 照片区
-    px0, py0 = x0 + 12, y0 + 12
-    px1, py1 = x1 - 12, y0 + 12 + PHOTO_H
-    grad = Image.new("RGB", (max(1, px1 - px0), max(1, py1 - py0)))
+    total_h = PHOTO_H + GAP + STRIP_H
+    top = cy - total_h // 2
+    px0, py0 = cx - PHOTO_W // 2, top
+    px1, py1 = px0 + PHOTO_W, py0 + PHOTO_H
+
+    # 照片块下加一层柔和阴影，看起来像一张摊在纸上的照片
+    from PIL import ImageFilter
+    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).rounded_rectangle(
+        [px0, py0 + 5, px1, py1 + 5], radius=8, fill=(0, 0, 0, 46))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(7))
+    img.alpha_composite(shadow)
+
+    # 照片块：竖向渐变（天光 → 地面），读起来像照片
+    grad = Image.new("RGB", (PHOTO_W, PHOTO_H))
     gd = ImageDraw.Draw(grad)
-    top, bot = (58, 64, 76), (21, 22, 26)
-    for i in range(grad.height):
-        t = i / max(1, grad.height - 1)
-        gd.line([(0, i), (grad.width, i)],
-                fill=(int(top[0] + (bot[0] - top[0]) * t),
-                      int(top[1] + (bot[1] - top[1]) * t),
-                      int(top[2] + (bot[2] - top[2]) * t)))
+    a, b = (62, 70, 84), (20, 21, 25)
+    for i in range(PHOTO_H):
+        t = i / (PHOTO_H - 1)
+        gd.line([(0, i), (PHOTO_W, i)],
+                fill=(int(a[0] + (b[0] - a[0]) * t),
+                      int(a[1] + (b[1] - a[1]) * t),
+                      int(a[2] + (b[2] - a[2]) * t)))
     mask = Image.new("L", grad.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, grad.width - 1, grad.height - 1], radius=3, fill=255)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, PHOTO_W - 1, PHOTO_H - 1], radius=6, fill=255)
     img.paste(grad, (px0, py0), mask)
-    # P9：先画到独立图层，按真实墨迹包围盒居中（字体侧边距/上下留白都不对称）
-    # 字号控制在墨迹宽度约为照片区 86%，留出呼吸感又不显小
-    target_w = (px1 - px0) * 0.86
-    fsize = int(PHOTO_H * 1.05)
+
+    # P9：画到独立图层，按真实墨迹居中
+    target_w = PHOTO_W * 0.86
+    fsize = int(PHOTO_H * 1.02)
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(layer).text((px0, py0), "P9",
                                font=ImageFont.truetype(FONT, fsize),
                                fill=CREAM + (255,), anchor="lt")
-    box = layer.getbbox()
-    ink = layer.crop(box)
-    if ink.width > target_w:                      # 按宽度回收
+    ink = layer.crop(layer.getbbox())
+    if ink.width > target_w:
         k = target_w / ink.width
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         ImageDraw.Draw(layer).text((px0, py0), "P9",
@@ -69,28 +80,28 @@ def draw_card(img, cx, cy):
         ink = layer.crop(layer.getbbox())
     img.alpha_composite(ink, ((px0 + px1) // 2 - ink.width // 2,
                               (py0 + py1) // 2 - ink.height // 2))
-    # 底部水印条
-    strip_cy = (py1 + y1) // 2
-    # 两行“文字”示意（设备名 + 参数），比单条更像水印而不是按钮
-    d.rounded_rectangle([x0 + 24, strip_cy - 15, x0 + 24 + 96, strip_cy - 5],
+
+    # 水印条：两行文字示意 + 红点
+    strip_cy = py1 + GAP + STRIP_H // 2
+    bar_w = int(PHOTO_W * 0.46)
+    d.rounded_rectangle([px0, strip_cy - 15, px0 + bar_w, strip_cy - 5],
                         radius=5, fill=INK + (255,))
-    d.rounded_rectangle([x0 + 24, strip_cy + 3, x0 + 24 + 64, strip_cy + 11],
-                        radius=4, fill=(126, 122, 116, 255))
+    d.rounded_rectangle([px0, strip_cy + 3, px0 + int(bar_w * 0.66), strip_cy + 11],
+                        radius=4, fill=GRAY + (255,))
     r = 15
-    dx = x1 - 38
+    dx = px1 - r
     d.ellipse([dx - r, strip_cy - r, dx + r, strip_cy + r], fill=RED + (255,))
 
 
 def foreground(size):
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    draw_card(img, CANVAS // 2, CANVAS // 2)
+    _content(img, CANVAS // 2, CANVAS // 2)
     if size != CANVAS:
         img = img.resize((size, size), Image.LANCZOS)
     return img
 
 
 def legacy(size):
-    """带圆角方形背景的传统图标"""
     ss = 4
     big = Image.new("RGBA", (CANVAS * ss, CANVAS * ss), (0, 0, 0, 0))
     d = ImageDraw.Draw(big)
@@ -106,8 +117,8 @@ DPI = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
 for dpi, scale in DPI.items():
     path = os.path.join(RES, "mipmap-" + dpi)
     os.makedirs(path, exist_ok=True)
-    fg_size = int(108 * scale)
-    foreground(fg_size).save(os.path.join(path, "ic_launcher_foreground.png"))
+    fgs = int(108 * scale)
+    foreground(fgs).save(os.path.join(path, "ic_launcher_foreground.png"))
     legacy(int(48 * scale)).save(os.path.join(path, "ic_launcher.png"))
 
 anydpi = os.path.join(RES, "mipmap-anydpi-v26")
@@ -127,7 +138,7 @@ os.makedirs(values, exist_ok=True)
 with open(os.path.join(values, "colors.xml"), "w", encoding="utf-8") as f:
     f.write("""<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#17171A</color>
+    <color name="ic_launcher_background">#F7F4EE</color>
 </resources>
 """)
 
