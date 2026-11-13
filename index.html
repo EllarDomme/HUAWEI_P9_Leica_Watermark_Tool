@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.90</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.91</span></p>
     </section>
   </aside>
 </div>
@@ -2800,7 +2800,12 @@
       } catch (e) { return Promise.resolve(null); }
     }
 
-    pickHandle().then(function (handle) {
+    // APK 内直接用原生保存，不要走 showSaveFilePicker：
+    // 安卓 WebView 里这个 API 存在但不会弹窗，Promise 永远不结束，表现就是「点导出没反应」
+    var useNative = !!(window.AndroidBridge && window.AndroidBridge.saveImage);
+    var picking = useNative ? Promise.resolve(null) : pickHandle();
+
+    picking.then(function (handle) {
       if (handle === 'cancel') return;
       var btn = el.exportBtn2;
       var old = btn.textContent;
