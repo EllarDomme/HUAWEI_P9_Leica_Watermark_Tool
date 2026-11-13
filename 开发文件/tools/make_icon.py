@@ -31,7 +31,7 @@ CANVAS = 432          # 108dp @4x
 # 内容整体占可见区（72dp=288px）约 60%，四周留白，避免被启动器放大后显得挤
 PHOTO_W = 172         # 43dp
 PHOTO_H = 168         # 42dp
-PHOTO_R = 10
+PHOTO_R = 30   # 与外层遮罩圆弧呼应，避免直角顶圆弧的割裂感
 GAP = 14
 STRIP_H = 34
 LIFT = 4              # 整体上移，抵消底部水印条带来的下坠感
@@ -80,7 +80,7 @@ def _content(img, cx, cy):
     strip_cy = py1 + GAP + STRIP_H // 2
     bar_w = int(PHOTO_W * 0.46)
     d.rounded_rectangle([px0, strip_cy - 10, px0 + bar_w, strip_cy - 3],
-                        radius=4, fill=INK + (255,))
+                        radius=6, fill=INK + (255,))
     d.rounded_rectangle([px0, strip_cy + 3, px0 + int(bar_w * 0.66), strip_cy + 9],
                         radius=3, fill=GRAY + (255,))
     r = 13
