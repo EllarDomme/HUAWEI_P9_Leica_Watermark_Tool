@@ -465,7 +465,7 @@
       </div>
       <div class="sld" data-show="center">
         <div class="sld-top"><span>图标间距</span><output id="gapOut">53</output></div>
-        <input type="range" id="logoGap" min="0" max="100" step="5" value="53">
+        <input type="range" id="logoGap" min="0" max="100" step="5" value="28">
       </div>
       <div class="row" data-show="center,corner,wordmark,dark">
         <span>文字颜色</span>
@@ -512,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.93</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.94</span></p>
     </section>
   </aside>
 </div>
@@ -561,7 +561,7 @@
   var DEF_UI = {
     bar: 0.082, border: 0.019, barAlign: 'center', logoScale: 1.10, font: 1.05, fontFamily: 'default',
     showDate: false, timeMode: 'date', ink: 'auto', barInk: 'ink', nameTone: 100, dateTone: 100, paramTone: 88, toneKey: '', tones: null,
-    format: 'jpeg', quality: 0.92, pos: 75, logoGap: 53, pinPreview: true, previewVh: 42
+    format: 'jpeg', quality: 0.92, pos: 75, logoGap: 28, pinPreview: true, previewVh: 42
   };
 
   var state = {
@@ -1198,8 +1198,8 @@
     var sS = g.iw * 0.016 * ui.font;
 
     var items = [];
-    var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 53;
-    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.024 * gapV / 100 });
+    var gapV = (typeof ui.logoGap === 'number') ? ui.logoGap : 28;
+    if (logoAspect() > 0) items.push({ type: 'logo', h: lh, gap: g.iw * 0.045 * gapV / 100 });
     if (name) items.push({ type: 'text', text: name, size: nameS, weight: 600, gap: g.iw * 0.007, color: nameInk });
     if (params) items.push({ type: 'line2', size: pS, gap: pS * 1.2 });
     if (date) items.push({ type: 'date', size: pS * 0.86, gap: pS * 0.85 });
@@ -2060,7 +2060,7 @@
     setRange('#quality', state.ui.quality * 100, '#qOut', '%', 0);
 
     setRange('#pos', (state.ui.pos == null ? 75 : state.ui.pos), '#posOut', '', 0);
-    setRange('#logoGap', (state.ui.logoGap == null ? 53 : state.ui.logoGap), '#gapOut', '', 0);
+    setRange('#logoGap', (state.ui.logoGap == null ? 28 : state.ui.logoGap), '#gapOut', '', 0);
     $$('#barAlignSeg button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.v === (state.ui.barAlign || 'center'));
     });
