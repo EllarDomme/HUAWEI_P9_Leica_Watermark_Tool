@@ -39,9 +39,25 @@ def draw_card(img, cx, cy):
     px0, py0 = x0 + 12, y0 + 12
     px1, py1 = x1 - 12, y0 + 12 + PHOTO_H
     d.rounded_rectangle([px0, py0, px1, py1], radius=5, fill=INK + (255,))
-    # P9
-    f = ImageFont.truetype(FONT, int(PHOTO_H * 0.82))
-    d.text(((px0 + px1) // 2, (py0 + py1) // 2 + 2), "P9", font=f, fill=CREAM + (255,), anchor="mm")
+    # P9：先画到独立图层，按真实墨迹包围盒居中（字体侧边距/上下留白都不对称）
+    # 字号控制在墨迹宽度约为照片区 86%，留出呼吸感又不显小
+    target_w = (px1 - px0) * 0.86
+    fsize = int(PHOTO_H * 1.05)
+    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(layer).text((px0, py0), "P9",
+                               font=ImageFont.truetype(FONT, fsize),
+                               fill=CREAM + (255,), anchor="lt")
+    box = layer.getbbox()
+    ink = layer.crop(box)
+    if ink.width > target_w:                      # 按宽度回收
+        k = target_w / ink.width
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        ImageDraw.Draw(layer).text((px0, py0), "P9",
+                                   font=ImageFont.truetype(FONT, int(fsize * k)),
+                                   fill=CREAM + (255,), anchor="lt")
+        ink = layer.crop(layer.getbbox())
+    img.alpha_composite(ink, ((px0 + px1) // 2 - ink.width // 2,
+                              (py0 + py1) // 2 - ink.height // 2))
     # 底部水印条
     strip_cy = (py1 + y1) // 2
     bar_h = 20
