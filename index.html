@@ -307,6 +307,9 @@
   .linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;color:#9a978f;
     text-decoration:underline;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .linkbtn:active{color:#f3f0ea}
+  .nw-diag{margin:12px 0 0;padding:10px 12px;background:#0f0f12;border:1px solid #26262e;
+    border-radius:8px;font:11px/1.6 ui-monospace,Consolas,monospace;color:#8d8a83;
+    white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto}
 </style>
 </head>
 <body>
@@ -509,7 +512,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.85</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.0.86</span></p>
     </section>
   </aside>
 </div>
@@ -1607,6 +1610,20 @@
 
     function show(asAbout) {
       title.textContent = asAbout ? '关于本工具' : '使用须知';
+      var diag = document.getElementById('nwDiag');
+      if (diag) {
+        if (asAbout) {
+          var ua = navigator.userAgent || '';
+          var core = (ua.match(/Chrome\/([\d.]+)/) || [])[1] || '未知';
+          diag.textContent = '内核 Chrome/' + core
+            + '\n屏幕 ' + (window.screen ? screen.width + '×' + screen.height : '?')
+            + '\ncreateImageBitmap ' + (window.createImageBitmap ? '支持' : '不支持')
+            + '\n最近错误 ' + (state.lastError ? state.lastError + '（' + state.lastErrorInfo + '）' : '无');
+          diag.hidden = false;
+        } else {
+          diag.hidden = true;
+        }
+      }
       mask.hidden = false;
       ok.textContent = asAbout ? '关闭' : '我知道了';
     }
@@ -1872,6 +1889,8 @@
       });
     }).catch(function (e) {
       console.error(e);
+      state.lastError = (e && (e.name || e.message)) || String(e);
+      state.lastErrorInfo = (blob.type || '?') + ' / ' + Math.round(blob.size / 1024) + 'KB';
       toast('这张图打不开：可能是尺寸太大或格式不支持，先裁剪或换一张试试', 6000);
     });
   }
@@ -2905,6 +2924,7 @@
     <div class="nw-actions">
       <button class="btn solid" id="nwOk">我知道了</button>
     </div>
+    <pre class="nw-diag" id="nwDiag"></pre>
     <p class="nw-foot">完整素材来源与下架流程：github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/blob/main/NOTICE.md</p>
   </div>
 </div>
