@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.9</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.10</span></p>
     </section>
   </aside>
 </div>
@@ -1404,7 +1404,9 @@
     var h2 = s2 * 0.55;
     // 行距要躲开图标高度，否则第二行会压到图标上
     var gapV = Math.max(bb * 0.16, (s1 + s2) * 0.62, (lw ? logoH * 0.5 + s2 * 0.85 : 0));
-    var totalH = h1 + gapV + h2;
+    // 只有存在第二行（日期/署名）时才为它预留高度，否则单行会偏上
+    var hasL2 = !!(date || sig);
+    var totalH = h1 + (hasL2 ? gapV + h2 : h1);   // 单行时块高 = 2×h1
     // 整块（含图标）在色带里居中，上下留白对称
     var y1 = cy - totalH / 2 + h1;
     var y2 = y1 + gapV;
