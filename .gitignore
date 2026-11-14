@@ -27,3 +27,6 @@ android/assets/index.html
 android/*.apk
 android/debug.keystore
 android/*.idsig
+
+# 固定地址的下载文件（Pages 直链，文件名不变，链接永久有效）
+!download/P9Watermark.apk
