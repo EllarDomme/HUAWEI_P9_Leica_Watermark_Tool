@@ -10,13 +10,12 @@
 
 ## 下载
 
-三个入口给的是同一个文件，任选其一。
+两个入口给的是同一个文件，任选其一。
 
 | 渠道 | 地址 | 说明 |
 |:--|:--|:--|
 | **国内直链** | https://gitee.com/tom-wall/dewei-watermark/raw/master/download/P9Watermark.apk | 最快，地址固定，推荐 |
 | **蓝奏云** | https://wwbao.lanzouq.com/ixRzu4fxgypi | 提取码 `7qav`，国内备用 |
-| **GitHub** | https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases | 全部历史版本 |
 
 - 版本 **v1.1.10** · **629 KB** · Android 5.0 及以上
 - SHA-256 `b1b9e7ebce4334557718d3a6242088291fa8589dd9004ebbd12c752d6cad7dca`
