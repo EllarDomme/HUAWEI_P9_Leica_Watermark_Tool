@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.7</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.8</span></p>
     </section>
   </aside>
 </div>
@@ -2286,15 +2286,65 @@
     $('#logoOut').textContent = e.target.value + '%';
     scheduleRender(); autosave();
   });
-  /* 触屏防误触：滑动页面时不要改滑杆。
-     关键点：一碰就跳值的那一下，在同一帧里立刻还原，所以看不到回弹动画。
-     手势判定：暂停(pending) → 横向(horizontal) 放行 / 竖向(vertical) 一直还原 */
+  /* 触屏滑杆：两套策略
+     ① 新内核（Chrome 80+）：保留原生滑杆，竖向滑动时同帧还原取值——手感最好
+     ② 老内核（P9 这类 Chrome 55）：原生滑杆会吃掉竖向手势，导致页面划不动，
+        所以关掉原生交互，由外层容器自己处理横向拖动                        */
   (function () {
     var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (!isTouch) return;
+    var m = (navigator.userAgent || '').match(/Chrome\/(\d+)/);
+    var chromeVer = m ? parseInt(m[1], 10) : 0;
+    var legacy = (chromeVer > 0 && chromeVer < 80) || location.search.indexOf('legacy=1') >= 0;
+
     $$('input[type=range]').forEach(function (el) {
       var row = el.closest ? (el.closest('.sld') || el.parentElement) : el.parentElement;
       if (!row) return;
+
+      if (legacy) {
+        /* ---------- 老内核：自己接管手势 ---------- */
+        el.style.pointerEvents = 'none';
+        var sx0 = 0, sy0 = 0, tracking = false, dragging = false;
+
+        function setFromX(clientX) {
+          var r = el.getBoundingClientRect();
+          if (r.width <= 1) return;
+          var mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
+          var st = parseFloat(el.step || 1) || 1;
+          var k = Math.min(1, Math.max(0, (clientX - r.left - 7) / Math.max(1, r.width - 14)));
+          var v = mn + k * (mx - mn);
+          v = Math.min(mx, Math.max(mn, Math.round(v / st) * st));
+          var str = String(parseFloat(v.toFixed(4)));
+          if (el.value !== str) {
+            el.value = str;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+
+        row.addEventListener('touchstart', function (e) {
+          if (e.touches.length !== 1) { tracking = false; return; }
+          sx0 = e.touches[0].clientX; sy0 = e.touches[0].clientY;
+          tracking = true; dragging = false;
+        }, { passive: true });
+
+        row.addEventListener('touchmove', function (e) {
+          if (!tracking || e.touches.length !== 1) return;
+          var dx = e.touches[0].clientX - sx0;
+          var dy = e.touches[0].clientY - sy0;
+          if (!dragging) {
+            if (Math.abs(dy) > 6 && Math.abs(dy) >= Math.abs(dx)) { tracking = false; return; } // 竖向：滚页面
+            if (Math.abs(dx) > 6) { dragging = true; } else { return; }
+          }
+          e.preventDefault();
+          setFromX(e.touches[0].clientX);
+        }, { passive: false });
+
+        row.addEventListener('touchend', function () { tracking = false; dragging = false; }, { passive: true });
+        row.addEventListener('touchcancel', function () { tracking = false; dragging = false; }, { passive: true });
+        return;
+      }
+
+      /* ---------- 新内核：保留原生 + 同帧还原 ---------- */
       var sx = 0, sy = 0, startVal = null, state = 'idle', restoring = false;
 
       function restore() {
@@ -2306,7 +2356,6 @@
       }
 
       el.addEventListener('input', function () {
-        // pending / vertical 阶段：任何原生改值都立刻还原（同帧，不闪）
         if (state === 'pending' || state === 'vertical') restore();
       });
 
@@ -2322,15 +2371,15 @@
         var dx = Math.abs(e.touches[0].clientX - sx);
         var dy = Math.abs(e.touches[0].clientY - sy);
         if (state === 'pending') {
-          if (dx > 6 && dx > dy) { state = 'horizontal'; return; }   // 横拖：放行
-          if (dy > 6 && dy >= dx) { state = 'vertical'; restore(); } // 竖滑：还原并继续让页面滚
+          if (dx > 6 && dx > dy) { state = 'horizontal'; return; }
+          if (dy > 6 && dy >= dx) { state = 'vertical'; restore(); }
         } else {
           restore();
         }
       }, { passive: true });
 
       function end() {
-        if (state === 'pending') restore();   // 只是点了一下：不改变
+        if (state === 'pending') restore();
         state = 'idle'; startVal = null;
       }
       row.addEventListener('touchend', end, { passive: true });
