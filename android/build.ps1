@@ -84,5 +84,14 @@ $ErrorActionPreference = 'Stop'
 Write-Host ''
 Write-Host ("APK: {0}  ({1:N0} KB)" -f $apk, ((Get-Item $apk).Length / 1KB))
 
+# 同步到官网的固定下载地址（两个位置，老页面缓存也能命中）
+$site1 = Join-Path (Split-Path $root -Parent) 'download'
+$site2 = Join-Path (Split-Path $root -Parent) 'welcome\download'
+foreach ($d in @($site1, $site2)) {
+  if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+  Copy-Item $apk (Join-Path $d 'P9Watermark.apk') -Force
+  Write-Host ("  已同步: {0}" -f (Join-Path $d 'P9Watermark.apk'))
+}
+
 
 
