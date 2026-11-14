@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.5</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.6</span></p>
     </section>
   </aside>
 </div>
@@ -2286,55 +2286,46 @@
     $('#logoOut').textContent = e.target.value + '%';
     scheduleRender(); autosave();
   });
-  /* 触屏下的滑杆：接管手势，竖向滑动只滚页面，横向拖动才改值
-     （老内核没有 Pointer Events，所以用 touch 事件实现） */
+  /* 触屏防误触：保留原生滑杆，只把「竖向滑动时被改掉的值」还原
+     这样横拖、点轨道跳转都还是原生手感，各版本内核通用 */
   (function () {
     var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (!isTouch) return;
     $$('input[type=range]').forEach(function (el) {
       var row = el.closest ? (el.closest('.sld') || el.parentElement) : el.parentElement;
       if (!row) return;
-      el.style.pointerEvents = 'none';          // 关掉原生交互，避免一碰就跳值
+      var sx = 0, sy = 0, startVal = null, tracking = false, restoring = false, moved = false;
 
-      function setFromX(clientX) {
-        var r = el.getBoundingClientRect();
-        if (r.width <= 1) return;
-        var mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
-        var st = parseFloat(el.step || 1) || 1;
-        var k = (clientX - r.left - 7) / Math.max(1, r.width - 14);
-        k = Math.min(1, Math.max(0, k));
-        var v = mn + k * (mx - mn);
-        v = Math.round(v / st) * st;
-        v = Math.min(mx, Math.max(mn, v));
-        var str = String(parseFloat(v.toFixed(4)));
-        if (el.value !== str) {
-          el.value = str;
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+      function restore() {
+        if (startVal == null || el.value === startVal) return;
+        restoring = true;
+        el.value = startVal;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        restoring = false;
       }
 
-      var sx = 0, sy = 0, tracking = false, dragging = false;
       row.addEventListener('touchstart', function (e) {
         if (e.touches.length !== 1) { tracking = false; return; }
         sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-        tracking = true; dragging = false;
+        startVal = el.value; tracking = true; moved = false;
       }, { passive: true });
 
       row.addEventListener('touchmove', function (e) {
         if (!tracking || e.touches.length !== 1) return;
-        var dx = e.touches[0].clientX - sx;
-        var dy = e.touches[0].clientY - sy;
-        if (!dragging) {
-          if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) { tracking = false; return; } // 竖向：交回页面滚动
-          if (Math.abs(dx) > 4 && Math.abs(dx) >= Math.abs(dy)) { dragging = true; } else { return; }
-        }
-        e.preventDefault();
-        setFromX(e.touches[0].clientX);
-      }, { passive: false });
+        var dx = Math.abs(e.touches[0].clientX - sx);
+        var dy = Math.abs(e.touches[0].clientY - sy);
+        if (dx > 4 || dy > 4) moved = true;
+        if (dy > 6 && dy > dx) restore();   // 竖向滑动：值还原，页面继续滚
+      }, { passive: true });
 
-      function endTouch() { tracking = false; dragging = false; }
-      row.addEventListener('touchend', endTouch, { passive: true });
-      row.addEventListener('touchcancel', endTouch, { passive: true });
+      function end() {
+        if (tracking && !moved) restore();  // 轻点轨道：不改变取值
+        tracking = false; startVal = null;
+      }
+      row.addEventListener('touchend', end, { passive: true });
+      row.addEventListener('touchcancel', function () { tracking = false; startVal = null; }, { passive: true });
+
+      el.addEventListener('input', function () { /* 保持原生行为 */ });
     });
   })();
 
