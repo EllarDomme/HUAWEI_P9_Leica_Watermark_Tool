@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.8</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.9</span></p>
     </section>
   </aside>
 </div>
@@ -1398,12 +1398,16 @@
     }
 
     // 行距跟着字号走，字号变大也不会叠在一起
-    var gapV = Math.max(bb * 0.11, (s1 + s2) * 0.58);
-    var y1 = cy - gapV;
-    var y2 = cy + gapV;
-
     var logoH = s1 * 1.5 * ui.logoScale;
     var lw = logoW(logoH);
+    var h1 = Math.max(s1 * 0.72, logoH) / 2;   // 第一行视觉半高（图标比文字高）
+    var h2 = s2 * 0.55;
+    // 行距要躲开图标高度，否则第二行会压到图标上
+    var gapV = Math.max(bb * 0.16, (s1 + s2) * 0.62, (lw ? logoH * 0.5 + s2 * 0.85 : 0));
+    var totalH = h1 + gapV + h2;
+    // 整块（含图标）在色带里居中，上下留白对称
+    var y1 = cy - totalH / 2 + h1;
+    var y2 = y1 + gapV;
     var x = left;
     if (lw) {
       drawLogo(ctx, x, y1, logoH, 'left');
@@ -1414,7 +1418,9 @@
 
     var l2 = date;
     var sigW = sig ? measureAt(ctx, sig, s2 * 0.96, 400) + s2 * 1.1 : 0;
-    if (l2) drawT(ctx, l2, left, y2, { size: fitText(ctx, l2, s2, 400, avail - sigW), weight: 400, color: sub });
+    // 有图标时，第二行从名字的起始位置开始，避免压在图标下面
+    var l2x = lw ? (left + lw + s1 * 0.5) : left;
+    if (l2) drawT(ctx, l2, l2x, y2, { size: fitText(ctx, l2, s2, 400, (right - l2x) - sigW), weight: 400, color: sub });
     if (sig) drawT(ctx, sig, right, y2, { size: s2 * 0.96, weight: 400, color: sub, align: 'right' });
   }
 
