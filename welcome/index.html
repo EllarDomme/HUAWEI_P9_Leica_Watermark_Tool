@@ -63,6 +63,7 @@
 
   /* 图片与图注 */
   figure{margin:44px 0 0}
+  figure.hero{max-width:440px;margin:44px auto 0}
   figure img{width:100%;height:auto;display:block;border:1px solid var(--hair)}
   figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 
@@ -82,6 +83,16 @@
     border:1px solid var(--hair);background:#ece8de}
   .tpl b{display:block;font-weight:500;color:var(--ink);margin-top:9px;font-size:14.5px}
   .tpl span{display:block;color:var(--muted);font-size:12.5px;line-height:1.6}
+
+  /* 点击放大 */
+  .gallery img,figure img{cursor:zoom-in}
+  #zoom{position:fixed;inset:0;background:rgba(20,19,15,.94);display:none;
+    align-items:center;justify-content:center;z-index:99;padding:24px;cursor:zoom-out}
+  #zoom.on{display:flex}
+  #zoom img{max-width:100%;max-height:100%;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+  #zoom .close{position:absolute;top:16px;right:20px;color:#e9e5da;font-size:15px;
+    letter-spacing:.08em;background:none;border:1px solid rgba(233,229,218,.35);
+    padding:7px 13px;cursor:pointer}
 
   /* 成片墙 */
   .gallery{columns:3;column-gap:16px;margin-top:6px}
@@ -155,9 +166,9 @@
     </p>
   </div>
 
-  <figure>
-    <img src="img/hero.jpg" alt="白条版式示例：一张寺庙照片，底部白条写着 HUAWEI P9 与 4.5mm f/2.2 1/841s ISO 50" loading="lazy">
-    <figcaption>白条版式。照片、机型、参数都在，观感和官方样张接近。</figcaption>
+  <figure class="hero">
+    <img src="img/hero-bw.jpg" alt="黑白广场照片，左下角是 Red 标与 HUAWEI P9、4.5mm f/2.2 1/714s ISO 50、拍摄时间" loading="lazy" data-zoom>
+    <figcaption>黑白 + 左下角标。参数落在画面角落，不挡主体。</figcaption>
   </figure>
 
   <section>
@@ -179,15 +190,14 @@
     <div class="rule"></div>
     <p class="sub">下面都是在手机上导出的原图，没有额外修图。</p>
     <div class="gallery">
-      <img src="img/g1.jpg" alt="街景成片" loading="lazy">
-      <img src="img/g2.jpg" alt="黑白广场成片" loading="lazy">
-      <img src="img/g3.jpg" alt="教学楼前的行人" loading="lazy">
-      <img src="img/g5.jpg" alt="街口建筑群" loading="lazy">
-      <img src="img/g4.jpg" alt="红砖广场" loading="lazy">
-      <img src="img/g6.jpg" alt="大字版式街景" loading="lazy">
-      <img src="img/g7.jpg" alt="寺庙白条版式" loading="lazy">
-      <img src="img/g8.jpg" alt="仰拍树冠" loading="lazy">
-      <img src="img/g9.jpg" alt="寺院大字版式" loading="lazy">
+      <img src="img/g3.jpg" alt="教学楼前的行人" loading="lazy" data-zoom>
+      <img src="img/g2.jpg" alt="黑白广场" loading="lazy" data-zoom>
+      <img src="img/g5.jpg" alt="街口建筑群" loading="lazy" data-zoom>
+      <img src="img/g4.jpg" alt="红砖广场" loading="lazy" data-zoom>
+      <img src="img/g6.jpg" alt="大字版式街景" loading="lazy" data-zoom>
+      <img src="img/g7.jpg" alt="寺庙白条版式" loading="lazy" data-zoom>
+      <img src="img/g8.jpg" alt="仰拍树冠" loading="lazy" data-zoom>
+      <img src="img/g9.jpg" alt="寺院大字版式" loading="lazy" data-zoom>
     </div>
   </section>
 
@@ -267,5 +277,33 @@
   </footer>
 
 </div>
+<div id="zoom" role="dialog" aria-label="查看大图"><button class="close" type="button">关闭 ESC</button><img alt=""></div>
+<script>
+  (function () {
+    var box = document.getElementById('zoom');
+    var pic = box.querySelector('img');
+    function open(src, alt) {
+      pic.src = src; pic.alt = alt || '';
+      box.classList.add('on');
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      box.classList.remove('on');
+      pic.removeAttribute('src');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.tagName === 'IMG' && t.hasAttribute('data-zoom')) {
+        open(t.currentSrc || t.src, t.alt);
+        return;
+      }
+      if (box.classList.contains('on')) close();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && box.classList.contains('on')) close();
+    });
+  })();
+</script>
 </body>
 </html>
