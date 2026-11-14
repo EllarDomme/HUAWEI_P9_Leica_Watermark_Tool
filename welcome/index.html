@@ -83,6 +83,14 @@
   .tpl b{display:block;font-weight:500;color:var(--ink);margin-top:9px;font-size:14.5px}
   .tpl span{display:block;color:var(--muted);font-size:12.5px;line-height:1.6}
 
+  /* 成片墙 */
+  .gallery{columns:3;column-gap:16px;margin-top:6px}
+  .gallery img{width:100%;height:auto;display:block;margin-bottom:16px;
+    border:1px solid var(--hair);break-inside:avoid}
+  @media (max-width:820px){.gallery{columns:2}}
+  @media (max-width:480px){.gallery{columns:2;column-gap:10px}
+    .gallery img{margin-bottom:10px}}
+
   /* 步骤 */
   .steps{counter-reset:s;margin:0;padding:0;list-style:none}
   .steps li{counter-increment:s;padding:16px 0;border-top:1px solid var(--hair);
@@ -163,6 +171,23 @@
       <div class="tpl"><img src="img/tpl-corner.jpg" alt="左下版式" loading="lazy"><b>左下</b><span>角标署名，不挡画面</span></div>
       <div class="tpl"><img src="img/tpl-wordmark.jpg" alt="大字版式" loading="lazy"><b>大字</b><span>品牌名主视觉，适合做封面</span></div>
       <div class="tpl"><img src="img/tpl-film.jpg" alt="胶片版式" loading="lazy"><b>胶片</b><span>米色画框，参数落在留白里</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>成片</h2>
+    <div class="rule"></div>
+    <p class="sub">下面都是在手机上导出的原图，没有额外修图。</p>
+    <div class="gallery">
+      <img src="img/g1.jpg" alt="街景成片" loading="lazy">
+      <img src="img/g2.jpg" alt="黑白广场成片" loading="lazy">
+      <img src="img/g3.jpg" alt="教学楼前的行人" loading="lazy">
+      <img src="img/g5.jpg" alt="街口建筑群" loading="lazy">
+      <img src="img/g4.jpg" alt="红砖广场" loading="lazy">
+      <img src="img/g6.jpg" alt="大字版式街景" loading="lazy">
+      <img src="img/g7.jpg" alt="寺庙白条版式" loading="lazy">
+      <img src="img/g8.jpg" alt="仰拍树冠" loading="lazy">
+      <img src="img/g9.jpg" alt="寺院大字版式" loading="lazy">
     </div>
   </section>
 
