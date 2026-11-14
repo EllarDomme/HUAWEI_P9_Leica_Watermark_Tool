@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.3</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.4</span></p>
     </section>
   </aside>
 </div>
@@ -2286,6 +2286,40 @@
     $('#logoOut').textContent = e.target.value + '%';
     scheduleRender(); autosave();
   });
+  /* 触屏防误触：手指在页面上滑动、或随手点一下轨道时，不要改动滑杆
+     - 只有按在「滑块本身」上才响应（轨道点击一律忽略）
+     - 竖向滑动交给页面滚动
+     - 鼠标操作不受影响 */
+  $$('input[type=range]').forEach(function (el) {
+    var ignoreUpTo = false, oldVal = null, restoring = false, timer = 0;
+    function thumbCenterX() {
+      var r = el.getBoundingClientRect();
+      var mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
+      var v = parseFloat(el.value);
+      var k = (mx > mn) ? (v - mn) / (mx - mn) : 0;
+      return r.left + 7 + k * (r.width - 14);
+    }
+    el.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'touch') { ignoreUpTo = false; return; }
+      oldVal = el.value;
+      ignoreUpTo = Math.abs(e.clientX - thumbCenterX()) > 16;   // 点在轨道上 → 忽略
+    });
+    el.addEventListener('input', function () {
+      if (!ignoreUpTo || restoring) return;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        if (el.value === oldVal) return;
+        restoring = true;
+        el.value = oldVal;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        restoring = false;
+      }, 0);
+    });
+    ['pointerup', 'pointercancel'].forEach(function (t) {
+      el.addEventListener(t, function () { ignoreUpTo = false; });
+    });
+  });
+
   $('#resetLook').addEventListener('click', function () {
     var d = clone(DEF_UI);
     Object.keys(d).forEach(function (k) {
