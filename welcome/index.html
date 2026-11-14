@@ -3,125 +3,241 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>德味水印 · 本地离线版</title>
+<title>德味水印 — 给照片加一条参数水印</title>
+<meta name="description" content="单文件工具，自动读 EXIF，六种版式。安卓有 App，电脑打开网页就能用，全程离线。">
+<meta name="theme-color" content="#f3f0e9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%23c8102e'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#f7f5f0; --card:#fff; --ink:#1b1a17; --muted:#6f6b63;
-    --line:#e2ded5; --accent:#1b1a17; --good:#2f7d4f;
+    --paper:#f3f0e9;
+    --ink:#16150f;
+    --body:#38352c;
+    --muted:#7a7468;
+    --hair:#d8d2c4;
+    --red:#c8102e;
+    --serif:"Songti SC","Noto Serif SC","Source Han Serif SC",SimSun,Georgia,serif;
+    --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+    --mono:ui-monospace,"SF Mono",Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font:16px/1.7 "Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
-    -webkit-font-smoothing:antialiased}
-  .wrap{max-width:760px;margin:0 auto;padding:48px 22px 80px}
-  header{display:flex;align-items:center;gap:10px;margin-bottom:34px}
-  .dot{width:10px;height:10px;border-radius:50%;background:#d0021b}
-  header .name{font-weight:600;letter-spacing:.4px}
-  header .tag{color:var(--muted);font-size:13px;border:1px solid var(--line);
-    border-radius:20px;padding:2px 10px}
-  h1{font-size:30px;line-height:1.35;margin:0 0 12px;letter-spacing:-.3px}
-  .lead{color:var(--muted);margin:0 0 28px;font-size:16px}
-  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
-  .btn{display:inline-block;text-decoration:none;padding:13px 22px;border-radius:12px;
-    font-size:15px;border:1px solid var(--line);color:var(--ink);background:#fff;
-    transition:.15s}
-  .btn:hover{border-color:#c9c3b7}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
-  .btn.primary:hover{opacity:.9}
-  .sub{color:var(--muted);font-size:13px;margin:0 0 40px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
-    padding:22px 24px;margin-bottom:18px}
-  .card h2{font-size:16px;margin:0 0 14px;letter-spacing:.2px}
-  ul{margin:0;padding-left:20px}
-  li{margin:9px 0;color:#3a3730}
-  li b{color:var(--ink)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:620px){.grid{grid-template-columns:1fr}}
-  .kv{display:flex;justify-content:space-between;gap:14px;padding:10px 0;
-    border-bottom:1px dashed var(--line);font-size:14px}
-  .kv:last-child{border-bottom:0}
-  .kv span:first-child{color:var(--muted);flex:0 0 auto}
-  .kv code{font-family:ui-monospace,Consolas,monospace;font-size:12px;
-    word-break:break-all;text-align:right;color:#3a3730}
-  .note{color:var(--muted);font-size:13px;margin-top:10px}
-  footer{color:var(--muted);font-size:13px;margin-top:34px;line-height:1.8}
-  footer a{color:var(--muted)}
-  .warn{border-left:3px solid #d0021b;padding-left:14px}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--body);
+    font:16px/1.75 var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:720px;margin:0 auto;padding:0 24px 96px}
+
+  /* 报头 */
+  .masthead{
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    padding:26px 0 20px;border-bottom:1px solid var(--ink);
+  }
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--serif);
+    font-size:17px;letter-spacing:.06em;color:var(--ink)}
+  .brand i{width:9px;height:9px;border-radius:50%;background:var(--red);display:block}
+  .meta{font-size:12px;color:var(--muted);letter-spacing:.04em}
+
+  /* 开场 */
+  .lede{padding:52px 0 0}
+  .lede h1{
+    font-family:var(--serif);font-weight:500;color:var(--ink);
+    font-size:clamp(30px,5.2vw,42px);line-height:1.3;letter-spacing:.01em;
+    margin:0 0 22px;
+  }
+  .lede p{margin:0 0 12px;max-width:34em}
+  .lede p.dim{color:var(--muted);font-size:15px}
+
+  .get{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:32px 0 10px}
+  .btn{
+    display:inline-block;text-decoration:none;padding:12px 22px;border:1px solid var(--ink);
+    color:var(--ink);font-size:15px;letter-spacing:.02em;transition:background .15s,color .15s;
+  }
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn.solid{background:var(--ink);color:var(--paper)}
+  .btn.solid:hover{background:#000}
+  .get small{color:var(--muted);font-size:13px;line-height:1.6}
+  .checksum{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.8;max-width:38em}
+  .checksum code{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.01em;
+    word-break:break-all;color:#5c574c;margin-top:2px}
+
+  /* 图片与图注 */
+  figure{margin:44px 0 0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--hair)}
+  figcaption{font-size:13px;color:var(--muted);margin-top:10px}
+
+  /* 章节 */
+  section{margin-top:64px}
+  h2{
+    font-family:var(--serif);font-weight:500;color:var(--ink);
+    font-size:20px;letter-spacing:.02em;margin:0 0 6px;
+  }
+  .sub{color:var(--muted);font-size:14px;margin:0 0 26px}
+  h2 + .rule{width:34px;height:1px;background:var(--ink);opacity:.6;margin:14px 0 26px}
+
+  /* 版式网格 */
+  .tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 20px}
+  @media (max-width:640px){.tpls{grid-template-columns:repeat(2,1fr)}}
+  .tpl img{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;display:block;
+    border:1px solid var(--hair);background:#ece8de}
+  .tpl b{display:block;font-weight:500;color:var(--ink);margin-top:9px;font-size:14.5px}
+  .tpl span{display:block;color:var(--muted);font-size:12.5px;line-height:1.6}
+
+  /* 步骤 */
+  .steps{counter-reset:s;margin:0;padding:0;list-style:none}
+  .steps li{counter-increment:s;padding:16px 0;border-top:1px solid var(--hair);
+    display:flex;gap:16px;align-items:baseline}
+  .steps li:last-child{border-bottom:1px solid var(--hair)}
+  .steps li::before{
+    content:counter(s);font-family:var(--serif);font-size:13px;color:var(--muted);
+    flex:0 0 20px;
+  }
+  .steps b{color:var(--ink);font-weight:500}
+
+  /* 规格 */
+  .spec{margin:0;border-top:1px solid var(--hair)}
+  .spec div{display:flex;gap:20px;justify-content:space-between;
+    padding:12px 0;border-bottom:1px solid var(--hair);font-size:14.5px}
+  .spec dt{color:var(--muted);flex:0 0 auto;margin:0}
+  .spec dd{margin:0;text-align:right;color:var(--body)}
+  .spec code{font-family:var(--mono);font-size:12px;word-break:break-all}
+
+  /* 问答 */
+  details{border-bottom:1px solid var(--hair)}
+  details:first-of-type{border-top:1px solid var(--hair)}
+  summary{cursor:pointer;padding:14px 0;color:var(--ink);font-size:15px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";float:right;color:var(--muted)}
+  details[open] summary::after{content:"–"}
+  details p{margin:0 0 16px;font-size:14.5px;color:var(--body);max-width:40em}
+
+  /* 说明 */
+  .notice{border-left:2px solid var(--red);padding-left:18px;margin-top:64px}
+  .notice p{font-size:14px;margin:0;color:var(--body)}
+  .notice a{color:var(--red)}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--ink);
+    font-size:13px;color:var(--muted);line-height:1.9}
+  footer a{color:var(--body)}
+  a{color:inherit}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="page">
 
-  <header>
-    <span class="dot"></span>
-    <span class="name">德味水印</span>
-    <span class="tag">本地 · 离线</span>
-  </header>
-
-  <h1>给照片加一条德味水印</h1>
-  <p class="lead">单文件工具，安卓有 App、电脑有网页版。自动读 EXIF，六种版式，完全离线，照片不出本机。</p>
-
-  <div class="actions">
-    <a class="btn" href="../">在线试用（不用下载）</a>
-    <a class="btn primary" href="download/P9Watermark.apk" rel="noopener">下载安卓 App</a>
-    <a class="btn" href="https://wwbao.lanzouq.com/ixRzu4fxgypi" rel="noopener">网盘备用</a>
-    <a class="btn" href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool" rel="noopener">查看源码</a>
-  </div>
-  <p class="sub">
-    安卓包点上面第一个按钮直接下载，<b>地址永久有效</b>；打不开时用网盘备用（提取码 <b>7qav</b>）。<br>
-    不用注册、不收费；想核对源码就走 GitHub。
-  </p>
-
-  <div class="card">
-    <h2>为什么可以放心下载</h2>
-    <ul>
-      <li><b>代码是公开的</b>：仓库里能看到每一次提交，MIT 许可，随便审</li>
-      <li><b>没有网络权限</b>：App 只申请「写入相册」一项，没有联网能力，物理上不可能上传你的照片</li>
-      <li><b>先试后下</b>：网页版功能完全一样，点上面「在线试用」就能验证，不用先装东西</li>
-      <li><b>不需要任何身份</b>：无登录、无手机号、无邮箱、无内购、无广告</li>
-      <li><b>可以校验文件</b>：下面给了 SHA-256，下载后比对一下就知道有没有被改过</li>
-      <li><b>作者可查</b>：所有开发过程都在 GitHub 上，有问题直接开 Issue 找我</li>
-    </ul>
+  <div class="masthead">
+    <div class="brand"><i></i>德味水印</div>
+    <div class="meta">本地运行 · 离线可用 · <span id="ver">v1.1.10</span></div>
   </div>
 
-  <div class="card">
-    <h2>当前版本</h2>
-    <div class="kv"><span>版本号</span><span id="ver">v1.1.10</span></div>
-    <div class="kv"><span>文件大小</span><span>629 KB</span></div>
-    <div class="kv"><span>支持系统</span><span>Android 5.0 及以上</span></div>
-    <div class="kv"><span>永久直链</span><span>本页 download/P9Watermark.apk</span></div>
-    <div class="kv"><span>网盘备用</span><span>蓝奏云 · 提取码 7qav</span></div>
-    <div class="kv"><span>SHA-256</span><code>5f96cfaec46e8f0a025643c53874346c1f362ee2d8a2c22fcd9e8645aac46d27</code></div>
-    <p class="note">
-      下载后可以在手机上用「文件管理 → 属性」或电脑上 <code>certutil -hashfile 文件名 SHA256</code> 比对。
-      每次发新版这个值都会变，以 Release 页面的说明为准。<br>
-      微信里打不开蓝奏云是正常的，把链接复制到浏览器再打开即可。
+  <div class="lede">
+    <h1>给照片底下<br>加一条参数</h1>
+    <p>拖一张照片进去，它自己读出机型、焦距、光圈、快门、ISO，排成一行字，画在照片边上。</p>
+    <p class="dim">六个版式，三套字体。安卓有安装包，电脑打开网页就能用。全程在本机跑，照片不出门，断网也照样用。</p>
+
+    <div class="get">
+      <a class="btn solid" href="download/P9Watermark.apk">下载安卓版 · 629 KB</a>
+      <a class="btn" href="../">在线试用</a>
+    </div>
+    <p class="checksum">
+      直链固定有效，以后发新版也是这个地址。打不开可以走
+      <a href="https://wwbao.lanzouq.com/ixRzu4fxgypi">网盘备用</a>（提取码 7qav）。<br>
+      SHA-256 <code>5f96cfaec46e8f0a025643c53874346c1f362ee2d8a2c22fcd9e8645aac46d27</code>
     </p>
   </div>
 
-  <div class="card">
-    <h2>它是怎么工作的</h2>
-    <ul>
-      <li>照片在你的浏览器 / App 里解码，画上水印，再存回本地</li>
-      <li>整个过程没有任何网络请求——断网照样能用</li>
-      <li>预设和图标存在本机，不上传、不同步</li>
-      <li>网页版关闭页面后内存即释放</li>
-    </ul>
-  </div>
+  <figure>
+    <img src="img/hero.jpg" alt="白条版式示例：一张寺庙照片，底部白条写着 HUAWEI P9 与 4.5mm f/2.2 1/841s ISO 50" loading="lazy">
+    <figcaption>白条版式。照片、机型、参数都在，观感和官方样张接近。</figcaption>
+  </figure>
 
-  <div class="card warn">
-    <h2>需要说明的一点</h2>
-    <p style="margin:0;color:#3a3730">
-      这是个人学习作品，<b>与华为、Leica Camera AG 均无关联</b>，不是官方工具，也未获授权。
-      内置的红点标属于 Leica 的注册商标，仅作本地排版示意；如需再分发请换成自己的图标。
-      完整说明见
-      <a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/blob/main/NOTICE.md">NOTICE.md</a>。
+  <section>
+    <h2>六种版式</h2>
+    <div class="rule"></div>
+    <p class="sub">同一张照片，换一种排法就是另一种气质。参数条的位置、留白、字号都不同。</p>
+    <div class="tpls">
+      <div class="tpl"><img src="img/tpl-bar.jpg" alt="白条版式" loading="lazy"><b>白条</b><span>底部白条，最接近官方样张</span></div>
+      <div class="tpl"><img src="img/tpl-dark.jpg" alt="黑条版式" loading="lazy"><b>黑条</b><span>暗底参数条，夜景更稳</span></div>
+      <div class="tpl"><img src="img/tpl-center.jpg" alt="居中版式" loading="lazy"><b>居中</b><span>图标在上，两行文字居中</span></div>
+      <div class="tpl"><img src="img/tpl-corner.jpg" alt="左下版式" loading="lazy"><b>左下</b><span>角标署名，不挡画面</span></div>
+      <div class="tpl"><img src="img/tpl-wordmark.jpg" alt="大字版式" loading="lazy"><b>大字</b><span>品牌名主视觉，适合做封面</span></div>
+      <div class="tpl"><img src="img/tpl-film.jpg" alt="胶片版式" loading="lazy"><b>胶片</b><span>米色画框，参数落在留白里</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>怎么用</h2>
+    <div class="rule"></div>
+    <ol class="steps">
+      <li><div><b>拖入照片</b><br>JPG / PNG / WebP 都行，EXIF 自动读，读不到也能手填。</div></li>
+      <li><div><b>挑一个版式</b><br>再按需要调字号、位置、深浅，滑杆改动即时预览。</div></li>
+      <li><div><b>导出</b><br>按原图尺寸出图，安卓版直接进相册，网页版下载到本地。</div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>规格</h2>
+    <div class="rule"></div>
+    <dl class="spec">
+      <div><dt>输入格式</dt><dd>JPG · PNG · WebP</dd></div>
+      <div><dt>导出尺寸</dt><dd>原图尺寸，长边上限 4096 px</dd></div>
+      <div><dt>安卓版本</dt><dd>Android 5.0 及以上</dd></div>
+      <div><dt>安装包</dt><dd>629 KB，无内置广告与统计</dd></div>
+      <div><dt>网络权限</dt><dd>没有。App 仅申请写入相册</dd></div>
+      <div><dt>字体</dt><dd>三套内置字库，共 73 字，放大到 4K 不糊</dd></div>
+      <div><dt>许可</dt><dd>MIT，源码在 GitHub</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>常见问题</h2>
+    <div class="rule"></div>
+    <details>
+      <summary>照片会被上传吗？</summary>
+      <p>不会。解码、绘制、导出全部在浏览器或 App 本地完成，整个过程没有网络请求。安卓版没有申请网络权限，物理上也传不出去。</p>
+    </details>
+    <details>
+      <summary>读不到参数怎么办？</summary>
+      <p>机型、焦距、光圈、快门、ISO 都能手动填。EXIF 只影响自动填充，不影响导出。</p>
+    </details>
+    <details>
+      <summary>为什么导出后相册里找不到？</summary>
+      <p>安卓 10 以后系统限制了写入位置。新版会通过系统相册接口写入「Pictures/德味水印」，正常情况下相册能直接看到。如果用的是旧版，请更新到最新。</p>
+    </details>
+    <details>
+      <summary>网页版和 App 有区别吗？</summary>
+      <p>功能一致。App 多一步省事：导出后直接进相册，不用再点下载。</p>
+    </details>
+    <details>
+      <summary>可以用在自己的项目里吗？</summary>
+      <p>可以，MIT 许可。但内置的红点标是 Leica 的注册商标，仅作本地排版示意，再分发前请换成自己的图标。</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>最近更新</h2>
+    <div class="rule"></div>
+    <dl class="spec">
+      <div><dt>v1.1.10</dt><dd>胶片模板不带日期时改为单行居中</dd></div>
+      <div><dt>v1.1.9</dt><dd>胶片模板整块居中，日期行避让图标</dd></div>
+      <div><dt>v1.1.8</dt><dd>老机型在滑杆上滑动不再卡住页面</dd></div>
+      <div><dt>v1.1.7</dt><dd>消除误触滑杆时的回弹闪烁</dd></div>
+      <div><dt>v1.1.3</dt><dd>字号放大时白条自动变高，图标不再被压小</dd></div>
+    </dl>
+    <p class="checksum" style="margin-top:14px">完整记录见 <a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases">Releases</a>。</p>
+  </section>
+
+  <div class="notice">
+    <p>
+      这是个人学习作品，与华为、Leica Camera AG 均无关联，不是官方工具。
+      红点标仅作排版示意。<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/blob/main/NOTICE.md">完整说明</a>
     </p>
   </div>
 
   <footer>
-    遇到问题或想提建议：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/issues">GitHub Issues</a><br>
-    更新记录：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases">Releases</a>
+    问题反馈：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/issues">GitHub Issues</a><br>
+    更新记录：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool/releases">Releases</a> ·
+    源码：<a href="https://github.com/EllarDomme/HUAWEI_P9_Leica_Watermark_Tool">EllarDomme/HUAWEI_P9_Leica_Watermark_Tool</a>
   </footer>
 
 </div>
