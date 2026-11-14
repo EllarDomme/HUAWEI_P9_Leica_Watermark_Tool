@@ -520,7 +520,7 @@
       </div>
       <button class="btn solid wide" id="exportBtn2" disabled>导出原图尺寸</button>
       <p class="foot-note">照片和设置只保存在这台设备上，不会上传到任何服务器。</p>
-      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.4</span></p>
+      <p class="foot-note"><button type="button" id="aboutLink" class="linkbtn">关于本工具</button> · v<span id="verText">1.1.5</span></p>
     </section>
   </aside>
 </div>
@@ -2286,39 +2286,57 @@
     $('#logoOut').textContent = e.target.value + '%';
     scheduleRender(); autosave();
   });
-  /* 触屏防误触：手指在页面上滑动、或随手点一下轨道时，不要改动滑杆
-     - 只有按在「滑块本身」上才响应（轨道点击一律忽略）
-     - 竖向滑动交给页面滚动
-     - 鼠标操作不受影响 */
-  $$('input[type=range]').forEach(function (el) {
-    var ignoreUpTo = false, oldVal = null, restoring = false, timer = 0;
-    function thumbCenterX() {
-      var r = el.getBoundingClientRect();
-      var mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
-      var v = parseFloat(el.value);
-      var k = (mx > mn) ? (v - mn) / (mx - mn) : 0;
-      return r.left + 7 + k * (r.width - 14);
-    }
-    el.addEventListener('pointerdown', function (e) {
-      if (e.pointerType !== 'touch') { ignoreUpTo = false; return; }
-      oldVal = el.value;
-      ignoreUpTo = Math.abs(e.clientX - thumbCenterX()) > 16;   // 点在轨道上 → 忽略
+  /* 触屏下的滑杆：接管手势，竖向滑动只滚页面，横向拖动才改值
+     （老内核没有 Pointer Events，所以用 touch 事件实现） */
+  (function () {
+    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (!isTouch) return;
+    $$('input[type=range]').forEach(function (el) {
+      var row = el.closest ? (el.closest('.sld') || el.parentElement) : el.parentElement;
+      if (!row) return;
+      el.style.pointerEvents = 'none';          // 关掉原生交互，避免一碰就跳值
+
+      function setFromX(clientX) {
+        var r = el.getBoundingClientRect();
+        if (r.width <= 1) return;
+        var mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
+        var st = parseFloat(el.step || 1) || 1;
+        var k = (clientX - r.left - 7) / Math.max(1, r.width - 14);
+        k = Math.min(1, Math.max(0, k));
+        var v = mn + k * (mx - mn);
+        v = Math.round(v / st) * st;
+        v = Math.min(mx, Math.max(mn, v));
+        var str = String(parseFloat(v.toFixed(4)));
+        if (el.value !== str) {
+          el.value = str;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+
+      var sx = 0, sy = 0, tracking = false, dragging = false;
+      row.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) { tracking = false; return; }
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+        tracking = true; dragging = false;
+      }, { passive: true });
+
+      row.addEventListener('touchmove', function (e) {
+        if (!tracking || e.touches.length !== 1) return;
+        var dx = e.touches[0].clientX - sx;
+        var dy = e.touches[0].clientY - sy;
+        if (!dragging) {
+          if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) { tracking = false; return; } // 竖向：交回页面滚动
+          if (Math.abs(dx) > 4 && Math.abs(dx) >= Math.abs(dy)) { dragging = true; } else { return; }
+        }
+        e.preventDefault();
+        setFromX(e.touches[0].clientX);
+      }, { passive: false });
+
+      function endTouch() { tracking = false; dragging = false; }
+      row.addEventListener('touchend', endTouch, { passive: true });
+      row.addEventListener('touchcancel', endTouch, { passive: true });
     });
-    el.addEventListener('input', function () {
-      if (!ignoreUpTo || restoring) return;
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        if (el.value === oldVal) return;
-        restoring = true;
-        el.value = oldVal;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        restoring = false;
-      }, 0);
-    });
-    ['pointerup', 'pointercancel'].forEach(function (t) {
-      el.addEventListener(t, function () { ignoreUpTo = false; });
-    });
-  });
+  })();
 
   $('#resetLook').addEventListener('click', function () {
     var d = clone(DEF_UI);
